@@ -1,8 +1,11 @@
 ---
 layout: page.html
+title: Just a Test
 ---
 
-# Index here
+# Index here {{ title }}
 
-This is the content of the first blog post.
+{{ zup }}
+
+This is the content of the first blog post. {{ layout }}
 
