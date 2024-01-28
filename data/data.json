@@ -1,0 +1,12 @@
+{
+    "site": {
+      "title": "My Static Site",
+      "author": "John Doe",
+      "description": "A simple static site generated with Python and Jinja2."
+    },
+    "social": {
+      "twitter": "@johndoe",
+      "github": "johndoe"
+    }
+  }
+  
