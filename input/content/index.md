@@ -5,7 +5,7 @@ title: Just a Test
 
 # Index here {{ title }}
 
-{{ zup }}
+{{ metadata.abc }}
 
 This is the content of the first blog post. {{ layout }}
 
