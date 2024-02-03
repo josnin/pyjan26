@@ -67,11 +67,8 @@ def process_markdown():
 
         html_content = render_string(frontmatter_data.content, context)
 
-        if permalink:
-            permalink = render_string(permalink, context)
-            out_path = os.path.join(OUTPUT_DIR, permalink)
-        else:
-            out_path = markdown_file.replace(CONTENT_DIR, OUTPUT_DIR)
+        out_path = os.path.join(OUTPUT_DIR, render_string(permalink, context)) if permalink else markdown_file.replace(CONTENT_DIR, OUTPUT_DIR)
+
 
         out_dir_name = os.path.splitext(out_path)[0]
         #TODO it also generates public/index folder
