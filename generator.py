@@ -26,23 +26,12 @@ env = Environment(
 
 
 def load_markdown_data(md_json_path):
-    md_json_path = "{}.json".format(md_json_path.rstrip(".md"))
-    if os.path.exists(md_json_path):
-        with open(md_json_path, 'r', encoding='utf-8') as json_file:
-            return json.load(json_file)
-    return {}
+    json_path = f"{os.path.splitext(md_json_path)[0]}.json"
+    return json.load(open(json_path, 'r', encoding='utf-8')) if os.path.exists(json_path) else {}
 
-def load_global_data():
-    # Get all json files from the content directory
-    json_files = [f for f in os.listdir(GLOBAL_DATA_DIR) if f.endswith('.json')]
-    global_data_dict = {}
-
-    for json_file in json_files:
-        json_path = os.path.join(GLOBAL_DATA_DIR, json_file)
-        with open(json_path, 'r', encoding='utf-8') as f:
-            global_data_dict[json_file.strip(".json")] = json.load(f)
-
-    return global_data_dict
+def load_global_data(global_data_dir):
+    return {os.path.splitext(file)[0]: json.load(open(os.path.join(global_data_dir, file), 'r', encoding='utf-8'))
+            for file in os.listdir(global_data_dir) if file.endswith('.json')}
 
 def render_template(template_name, context):
     template = env.get_template(template_name)
@@ -54,15 +43,11 @@ def render_string(md_content, context):
 
 def load_data(markdown_file):
     with open(markdown_file, 'r', encoding='utf-8') as f:
-        frontmatter_data = frontmatter.load(f)
-        markdown_data_dict = load_markdown_data(markdown_file)
-    return frontmatter_data, markdown_data_dict
+        return frontmatter.load(f), load_markdown_data(markdown_file)
 
 def get_final_out_path(out_path):
-    if out_path.endswith('index.md'):
-        return f"{os.path.splitext(out_path)[0]}.html"
-    else:
-        return os.path.join(os.path.splitext(out_path)[0], "index.html")
+    base_path, extension = os.path.splitext(out_path)
+    return f"{base_path}.html" if out_path.endswith('index.md') else os.path.join(base_path, "index.html")
 
 def write_to_file(final_out_path, layout, html_content, context):
     with open(final_out_path, 'w', encoding='utf-8') as f:
@@ -71,7 +56,7 @@ def write_to_file(final_out_path, layout, html_content, context):
 
 def process_markdown():
     markdown_files = glob.glob(os.path.join(CONTENT_DIR, "**/*.md"), recursive=True)
-    global_data_dict = load_global_data()
+    global_data_dict = load_global_data(GLOBAL_DATA_DIR)
 
     for markdown_file in markdown_files:
         frontmatter_data, markdown_data_dict = load_data(markdown_file)
@@ -86,12 +71,15 @@ def process_markdown():
             permalink = render_string(permalink, context)
             out_path = os.path.join(OUTPUT_DIR, permalink)
         else:
-            markdown_file.replace(CONTENT_DIR, OUTPUT_DIR)
+            out_path = markdown_file.replace(CONTENT_DIR, OUTPUT_DIR)
 
         out_dir_name = os.path.splitext(out_path)[0]
+        #TODO it also generates public/index folder
         os.makedirs(out_dir_name, exist_ok=True)
+        print('makedirs', out_dir_name)
 
         final_out_path = get_final_out_path(out_path)
+        print('write here', final_out_path)
 
         write_to_file(final_out_path, layout, html_content, context)
 
