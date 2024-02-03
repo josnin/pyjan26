@@ -1,7 +1,7 @@
 ---
 layout: page.html
 title: Just a Test
-permalink: "output/{{ metadata.abc }}"
+permalink: "{{ metadata.abc }}"
 ---
 
 # Content2 page
