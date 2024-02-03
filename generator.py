@@ -8,13 +8,13 @@ from jinja2_markdown import MarkdownExtension
 
 
 # Input directory / file
-template_dir = 'input/templates'
-content_dir = 'input/content'
-global_data_dir = 'input/data'
+template_dir = '_templates'
+content_dir = '_content'
+global_data_dir = '_data'
 default_layout = 'base.html'
 
 # Output directory
-output_dir = 'output'
+output_dir = 'public'
 
 # Set up Jinja2 environment
 env = Environment(
