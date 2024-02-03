@@ -1,8 +1,9 @@
 import os
 import json
-import markdown2
+import glob
+#import markdown2
 import frontmatter
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, BaseLoader
 from jinja2_markdown import MarkdownExtension
 
 
@@ -20,6 +21,7 @@ env = Environment(
     loader=FileSystemLoader(template_dir),
     extensions=[MarkdownExtension],
 )
+
 
 # Create output directory if it doesn't exist
 os.makedirs(output_dir, exist_ok=True)
@@ -47,44 +49,54 @@ def render_template(template_name, context):
     template = env.get_template(template_name)
     return template.render(context)
 
-def convert_markdown_to_html(md_content, context):
+def render_string(md_content, context):
     template = env.from_string(md_content)
     return template.render(context)
 
-
-def generate_static_site():
+def process_markdown():
     # Get all markdown files from the content directory
-    markdown_files = [f for f in os.listdir(content_dir) if f.endswith('.md')]
+    markdown_files = glob.glob("{}/**/*.md".format(content_dir), recursive=True)
 
     global_data_dict = load_global_data()
 
     for markdown_file in markdown_files:
         # Read the markdown content along with front matter
-        md_path = os.path.join(content_dir, markdown_file)
-        with open(os.path.join(content_dir, markdown_file), 'r', encoding='utf-8') as f:
+        with open(markdown_file, 'r', encoding='utf-8') as f:
             frontmatter_data = frontmatter.load(f)
-            markdown_data_dict = load_markdown_data(md_path)
-
-
-        # Extract layout information from front matter or use a default layout
-        layout = frontmatter_data.get('layout', default_layout)
-
-
+            markdown_data_dict = load_markdown_data(markdown_file)
+        
         # Pass Jinja variables from front matter to the template , based on priority
         context = { **global_data_dict, **markdown_data_dict, **frontmatter_data.to_dict() }
 
-        # Convert markdown to HTML, including Jinja variables
-        html_content = convert_markdown_to_html(frontmatter_data.content, context)
+        # Extract layout information from front matter or use a default layout
+        layout = frontmatter_data.get('layout', default_layout)
+        permalink = frontmatter_data.get('permalink', output_dir)
 
-        output_file_path = os.path.join(output_dir, os.path.splitext(markdown_file)[0] + '.html')
+        # Convert markdown to HTML, including Jinja variables
+        html_content = render_string(frontmatter_data.content, context)
+
+        #Convert jinja variables in permalink
+        permalink = render_string(permalink, context)
+
+        out_path = markdown_file.replace(content_dir, permalink)
+        out_dir_name = "{}".format(out_path.rstrip(".md"))
+        os.makedirs(out_dir_name, exist_ok=True)
+        print(f"Created output directory: {out_dir_name}")
 
         # Render the specified layout template and write to the output file
-        with open(output_file_path, 'w', encoding='utf-8') as f:
+        # /output/posts/abc/index.html
+        final_out_path = "{}/index.html".format(out_dir_name)
+        with open(final_out_path, 'w', encoding='utf-8') as f:
 
             # rm content so it wont override the new content
             context.pop('content')
 
             f.write(render_template(layout, {'content': html_content, **context }))
+
+
+def generate_static_site():
+    process_markdown()
+
 
 if __name__ == '__main__':
     generate_static_site()
