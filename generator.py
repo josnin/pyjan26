@@ -5,86 +5,81 @@ import glob
 import frontmatter
 from jinja2 import Environment, FileSystemLoader, BaseLoader
 from jinja2_markdown import MarkdownExtension
+from settings import *
 
 
-# Input directory / file
-TEMPLATE_DIR = '_templates'
-CONTENT_DIR = '_content'
-GLOBAL_DATA_DIR = '_data'
+class Jan26Gen:
+    def __init__(self):
+        self.template_dir = os.getenv('TEMPLATE_DIR', TEMPLATE_DIR)
+        self.content_dir = os.getenv('CONTENT_DIR', CONTENT_DIR)
+        self.global_data_dir = os.getenv('GLOBAL_DATA_DIR', GLOBAL_DATA_DIR)
+        self.output_dir = os.getenv('OUTPUT_DIR', OUTPUT_DIR)
+        self.default_layout = os.getenv('DEFAULT_LAYOUT', DEFAULT_LAYOUT)
 
-# Output directory
-OUTPUT_DIR = 'public'
+        # Set up Jinja2 environment
+        self.env = Environment(
+            loader=FileSystemLoader(self.template_dir),
+            extensions=[MarkdownExtension],
+        )
 
-# Layout / Templates
-DEFAULT_LAYOUT = 'base.html'
+    def process_markdown(self):
+        markdown_files = glob.glob(os.path.join(self.content_dir, "**/*.md"), recursive=True)
+        global_data_dict = self.load_global_data()
 
-# Set up Jinja2 environment
-env = Environment(
-    loader=FileSystemLoader(TEMPLATE_DIR),
-    extensions=[MarkdownExtension],
-)
+        for markdown_file in markdown_files:
+            frontmatter_data, markdown_data_dict = self.load_data(markdown_file)
+            context = {**global_data_dict, **markdown_data_dict, **frontmatter_data.to_dict()}
 
+            layout = frontmatter_data.get('layout', self.default_layout)
+            permalink = frontmatter_data.get('permalink')
 
-def load_markdown_data(md_json_path):
-    json_path = f"{os.path.splitext(md_json_path)[0]}.json"
-    return json.load(open(json_path, 'r', encoding='utf-8')) if os.path.exists(json_path) else {}
+            html_content = self.render_string(frontmatter_data.content, context)
 
-def load_global_data(global_data_dir):
-    return {os.path.splitext(file)[0]: json.load(open(os.path.join(global_data_dir, file), 'r', encoding='utf-8'))
-            for file in os.listdir(global_data_dir) if file.endswith('.json')}
+            out_path = os.path.join(self.output_dir, self.render_string(permalink, context)) if permalink else markdown_file.replace(self.content_dir, self.output_dir)
 
-def render_template(template_name, context):
-    template = env.get_template(template_name)
-    return template.render(context)
+            out_dir_name = os.path.splitext(out_path)[0]
+            os.makedirs(out_dir_name, exist_ok=True)
+            print('makedirs', out_dir_name)
 
-def render_string(md_content, context):
-    template = env.from_string(md_content)
-    return template.render(context)
+            final_out_path = self.get_final_out_path(out_path)
+            print('write here', final_out_path)
 
-def load_data(markdown_file):
-    with open(markdown_file, 'r', encoding='utf-8') as f:
-        return frontmatter.load(f), load_markdown_data(markdown_file)
+            self.write_to_file(final_out_path, layout, html_content, context)
 
-def get_final_out_path(out_path):
-    base_path, extension = os.path.splitext(out_path)
-    return f"{base_path}.html" if out_path.endswith('index.md') else os.path.join(base_path, "index.html")
+    def load_global_data(self):
+        return {os.path.splitext(f)[0]: self.load_json_data(os.path.join(self.global_data_dir, f)) for f in os.listdir(self.global_data_dir) if f.endswith('.json')}
 
-def write_to_file(final_out_path, layout, html_content, context):
-    with open(final_out_path, 'w', encoding='utf-8') as f:
-        context.pop('content')
-        f.write(render_template(layout, {'content': html_content, **context }))
+    def load_data(self, markdown_file):
+        with open(markdown_file, 'r', encoding='utf-8') as f:
+            return frontmatter.load(f), self.load_markdown_data(markdown_file)
 
-def process_markdown():
-    markdown_files = glob.glob(os.path.join(CONTENT_DIR, "**/*.md"), recursive=True)
-    global_data_dict = load_global_data(GLOBAL_DATA_DIR)
+    def load_markdown_data(self, md_json_path):
+        json_path = f"{os.path.splitext(md_json_path)[0]}.json"
+        return self.load_json_data(json_path)
 
-    for markdown_file in markdown_files:
-        frontmatter_data, markdown_data_dict = load_data(markdown_file)
-        context = {**global_data_dict, **markdown_data_dict, **frontmatter_data.to_dict()}
+    def load_json_data(self, json_path):
+        return json.load(open(json_path, 'r', encoding='utf-8')) if os.path.exists(json_path) else {}
 
-        layout = frontmatter_data.get('layout', DEFAULT_LAYOUT)
-        permalink = frontmatter_data.get('permalink')
+    def render_template(self, template_name, context):
+        template = self.env.get_template(template_name)
+        return template.render(context)
 
-        html_content = render_string(frontmatter_data.content, context)
+    def render_string(self, md_content, context):
+        template = self.env.from_string(md_content)
+        return template.render(context)
 
-        out_path = os.path.join(OUTPUT_DIR, render_string(permalink, context)) if permalink else markdown_file.replace(CONTENT_DIR, OUTPUT_DIR)
+    def get_final_out_path(self, out_path):
+        return f"{os.path.splitext(out_path)[0]}.html" if out_path.endswith('index.md') else os.path.join(os.path.splitext(out_path)[0], "index.html")
 
+    def write_to_file(self, final_out_path, layout, html_content, context):
+        with open(final_out_path, 'w', encoding='utf-8') as f:
+            context.pop('content')
+            f.write(self.render_template(layout, {'content': html_content, **context }))
 
-        out_dir_name = os.path.splitext(out_path)[0]
-        #TODO it also generates public/index folder
-        os.makedirs(out_dir_name, exist_ok=True)
-        print('makedirs', out_dir_name)
-
-        final_out_path = get_final_out_path(out_path)
-        print('write here', final_out_path)
-
-        write_to_file(final_out_path, layout, html_content, context)
-
-
-
-def generate_static_site():
-    process_markdown()
+    def generate_static_site(self):
+        self.process_markdown()
 
 
 if __name__ == '__main__':
-    generate_static_site()
+    ssg = Jan26Gen()
+    ssg.generate_static_site()
