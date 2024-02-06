@@ -1,5 +1,7 @@
 ---
 layout: samplelayout.html
+tags: ["zup"]
+permalink: "newoutput"
 ---
 # Page1
 

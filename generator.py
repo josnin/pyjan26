@@ -6,6 +6,7 @@ import frontmatter
 from jinja2 import Environment, FileSystemLoader, BaseLoader
 from jinja2_markdown import MarkdownExtension
 from settings import *
+import custom_collections
 
 def load_json_data(json_path):
     return json.load(open(json_path, 'r', encoding='utf-8')) if os.path.exists(json_path) else {}
@@ -58,8 +59,7 @@ class Jan26Gen:
         self.content_parser = ContentParser()
         self.template_renderer = TemplateRenderer(self.template_dir)
         self.file_generator = FileGenerator()
-
-        self._collections = {}
+        self.custom_collections = []
 
     def get_markdown_files(self):
         return glob.glob(os.path.join(self.content_dir, "**/*.md"), recursive=True)
@@ -72,17 +72,28 @@ class Jan26Gen:
 
     def get_final_out_path(self, out_path):
         return f"{os.path.splitext(out_path)[0]}.html" if out_path.endswith('index.md') else os.path.join(os.path.splitext(out_path)[0], "index.html")
+    
+    def add_collections(self, custom_function):
+        self.custom_collections.extend(custom_function)
 
-    def get_collections(self):
-        return self._collections
+    def build_custom_collections(self, collections):
+        # Build collections using custom collection functions
+        for function in self.custom_collections:
+            custom_collections = function(collections)
+            for name, items in custom_collections.items():
+                collections.setdefault(name, []).extend(items)
+        return collections
 
     def build_collections(self):
         markdown_files = self.get_markdown_files()
         global_data_dict = self.load_global_data()
+        collections = {}
 
         for markdown_file in markdown_files:
             frontmatter_data, markdown_data_dict = self.content_parser.parse(markdown_file)  
             collection_name = os.path.basename(os.path.dirname(markdown_file))
+
+            # predefined collections starts here
 
             context = {**markdown_data_dict, **frontmatter_data.to_dict()}
             context_w_global_dict = { **context, **global_data_dict }
@@ -109,19 +120,23 @@ class Jan26Gen:
             write_to_file = self.template_renderer.render(layout, {'content': html_content, **global_data_dict })
             context.update({'write_to_file': write_to_file})
 
-            if collection_name not in self._collections:
-                self._collections[collection_name] = []
+            if collection_name not in collections:
+                collections[collection_name] = []
 
-            self._collections[collection_name].append(context)
-        
-        self._collections.update(global_data_dict)
+            collections[collection_name].append(context)
 
-        #print(self.collections)
+        collections.update(global_data_dict)
+
+        collections = self.build_custom_collections(collections)
+
+
+        return collections
+
 
     def render_collections(self):
-        self.build_collections()
+        collections = self.build_collections()
 
-        for collection_name, items in self.get_collections().items():
+        for collection_name, items in collections.items():
             for item in items:
                 if 'out_dir_name' in item:
                     self.file_generator.generate(item['out_dir_name'], 
@@ -131,6 +146,14 @@ class Jan26Gen:
         self.render_collections()
 
 
+
+# Get all function names from the module
+function_names = [name for name in dir(custom_collections) if callable(getattr(custom_collections, name))]
+
+# Get the function objects using getattr() and pass them to add_collections
+custom_collections_fn = [getattr(custom_collections, name) for name in function_names]
+
 if __name__ == '__main__':
     s = Jan26Gen()
+    s.add_collections(custom_collections_fn)
     print(s.generate_static_site())
