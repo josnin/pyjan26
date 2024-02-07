@@ -6,7 +6,6 @@ import frontmatter
 from jinja2 import Environment, FileSystemLoader, BaseLoader
 from jinja2_markdown import MarkdownExtension
 from settings import *
-import custom_collections
 
 def load_json_data(json_path):
     return json.load(open(json_path, 'r', encoding='utf-8')) if os.path.exists(json_path) else {}
@@ -143,14 +142,25 @@ class Jan26Gen:
         self.render_collections()
 
 
-
-# Get all function names from the module
-function_names = [name for name in dir(custom_collections) if callable(getattr(custom_collections, name))]
-
-# Get the function objects using getattr() and pass them to add_collections
-custom_collections_fn = [getattr(custom_collections, name) for name in function_names]
-
 if __name__ == '__main__':
+
+    custom_collections_fn = None
+
+    try:
+        import custom_collections
+
+        # Get all function names from the module
+        function_names = [name for name in dir(custom_collections) if callable(getattr(custom_collections, name))]
+
+        # Get the function objects using getattr() and pass them to add_collections
+        custom_collections_fn = [getattr(custom_collections, name) for name in function_names]
+
+    except ImportError:
+        print("custom_collections.py file not found. No custom collections will be added.")
+
+
     gen = Jan26Gen()
-    gen.add_collections(custom_collections_fn)
+    if custom_collections_fn: gen.add_collections(custom_collections_fn)
     print(gen.generate_static_site())
+
+

@@ -1,4 +1,3 @@
-
 def custom_collection_function1(collections):
     # Logic to generate collection 1
     return {'collection1': [{'metadata': {}, 'content': 'Content 1'}, {'metadata': {}, 'content': 'Content 2'}]}
