@@ -6,7 +6,7 @@ tags: ["vue", "react"]
 
 # Post1 page
 
-{{ metadata.abc }}
+{{ METADATA.abc }}
 
 {{ tags }}
 

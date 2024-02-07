@@ -5,7 +5,12 @@ import glob
 import frontmatter
 from jinja2 import Environment, FileSystemLoader, BaseLoader
 from jinja2_markdown import MarkdownExtension
-from settings import *
+
+import settings
+
+# Get only variables from settings module
+settings_variables = {key: value for key, value in settings.__dict__.items() if not key.startswith('__')}
+
 
 def load_json_data(json_path):
     return json.load(open(json_path, 'r', encoding='utf-8')) if os.path.exists(json_path) else {}
@@ -15,9 +20,6 @@ class ContentParser:
     def load_markdown_data(self, md_json_path):
         json_path = f"{os.path.splitext(md_json_path)[0]}.json"
         return load_json_data(json_path)
-
-    def load_global_data(self, global_data_dir):
-        return {os.path.splitext(f)[0]: load_json_data(os.path.join(global_data_dir, f)) for f in os.listdir(global_data_dir) if f.endswith('.json')}
 
     def parse(self, markdown_file):
         with open(markdown_file, 'r', encoding='utf-8') as f:
@@ -58,11 +60,11 @@ class FileGenerator:
 
 class Jan26Gen:
     def __init__(self):
-        self.template_dir = os.getenv('TEMPLATE_DIR', TEMPLATE_DIR)
-        self.content_dir = os.getenv('CONTENT_DIR', CONTENT_DIR)
-        self.global_data_dir = os.getenv('GLOBAL_DATA_DIR', GLOBAL_DATA_DIR)
-        self.output_dir = os.getenv('OUTPUT_DIR', OUTPUT_DIR)
-        self.default_layout = os.getenv('DEFAULT_LAYOUT', DEFAULT_LAYOUT)
+        self.template_dir = os.getenv('TEMPLATE_DIR', settings.TEMPLATE_DIR)
+        self.content_dir = os.getenv('CONTENT_DIR', settings.CONTENT_DIR)
+        self.global_data_dir = os.getenv('GLOBAL_DATA_DIR', settings.GLOBAL_DATA_DIR)
+        self.output_dir = os.getenv('OUTPUT_DIR', settings.OUTPUT_DIR)
+        self.default_layout = os.getenv('DEFAULT_LAYOUT', settings.DEFAULT_LAYOUT)
 
         self.content_parser = ContentParser()
         self.template_renderer = TemplateRenderer(self.template_dir)
@@ -82,7 +84,6 @@ class Jan26Gen:
 
     def build_collections(self):
         markdown_files = self.file_generator.get_markdown_files(self.content_dir)
-        global_data_dict = self.content_parser.load_global_data(self.global_data_dir)
         collections = {}
 
         for markdown_file in markdown_files:
@@ -92,7 +93,7 @@ class Jan26Gen:
             # predefined collections starts here
 
             context = {**markdown_data_dict, **frontmatter_data.to_dict()}
-            context_w_global_dict = { **context, **global_data_dict }
+            context_w_global_dict = { **context, **settings_variables }
 
             layout = frontmatter_data.get('layout', self.default_layout)
             context.update({'layout': layout})
@@ -113,7 +114,7 @@ class Jan26Gen:
             final_out_path = self.file_generator.get_final_out_path(out_path)
             context.update({'final_out_path': final_out_path})
 
-            write_to_file = self.template_renderer.render(layout, {'content': html_content, **global_data_dict })
+            write_to_file = self.template_renderer.render(layout, {'content': html_content, **settings_variables })
             context.update({'write_to_file': write_to_file})
 
             if collection_name not in collections:
@@ -121,7 +122,7 @@ class Jan26Gen:
 
             collections[collection_name].append(context)
 
-        collections.update(global_data_dict)
+        collections.update(settings_variables)
 
         collections = self.build_custom_collections(collections)
 

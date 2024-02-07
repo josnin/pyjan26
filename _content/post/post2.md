@@ -7,7 +7,7 @@ permalink: "xyz"
 
 # Post1 page
 
-{{ metadata.abc }}
+{{ METADATA.abc }}
 
 {{ tags }}
 

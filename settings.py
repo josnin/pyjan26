@@ -9,3 +9,14 @@ OUTPUT_DIR = 'public'
 
 # Layout / Templates
 DEFAULT_LAYOUT = 'base.html'
+
+
+METADATA = {
+    "abc": "efg"
+}
+
+DATA = {
+  "title": "My Static Site",
+  "author": "John Doe",
+  "description": "A simple static site generated with Python and Jinja2."
+}
