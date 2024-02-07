@@ -62,7 +62,6 @@ class Jan26Gen:
     def __init__(self):
         self.template_dir = os.getenv('TEMPLATE_DIR', settings.TEMPLATE_DIR)
         self.content_dir = os.getenv('CONTENT_DIR', settings.CONTENT_DIR)
-        self.global_data_dir = os.getenv('GLOBAL_DATA_DIR', settings.GLOBAL_DATA_DIR)
         self.output_dir = os.getenv('OUTPUT_DIR', settings.OUTPUT_DIR)
         self.default_layout = os.getenv('DEFAULT_LAYOUT', settings.DEFAULT_LAYOUT)
 
