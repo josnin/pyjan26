@@ -17,6 +17,9 @@ class ContentParser:
         json_path = f"{os.path.splitext(md_json_path)[0]}.json"
         return load_json_data(json_path)
 
+    def load_global_data(self, global_data_dir):
+        return {os.path.splitext(f)[0]: load_json_data(os.path.join(global_data_dir, f)) for f in os.listdir(global_data_dir) if f.endswith('.json')}
+
     def parse(self, markdown_file):
         with open(markdown_file, 'r', encoding='utf-8') as f:
             return frontmatter.load(f), self.load_markdown_data(markdown_file)
@@ -47,6 +50,12 @@ class FileGenerator:
 
         print(f'write_to_file {final_out_path}')
 
+    def get_markdown_files(self, content_dir):
+        return glob.glob(os.path.join(content_dir, "**/*.md"), recursive=True)
+
+    def get_final_out_path(self, out_path):
+        return f"{os.path.splitext(out_path)[0]}.html" if out_path.endswith('index.md') else os.path.join(os.path.splitext(out_path)[0], "index.html")
+
 
 class Jan26Gen:
     def __init__(self):
@@ -61,18 +70,6 @@ class Jan26Gen:
         self.file_generator = FileGenerator()
         self.custom_collections = []
 
-    def get_markdown_files(self):
-        return glob.glob(os.path.join(self.content_dir, "**/*.md"), recursive=True)
-
-    def load_global_data(self):
-        return {os.path.splitext(f)[0]: self.load_json_data(os.path.join(self.global_data_dir, f)) for f in os.listdir(self.global_data_dir) if f.endswith('.json')}
-
-    def load_json_data(self, json_path):
-        return json.load(open(json_path, 'r', encoding='utf-8')) if os.path.exists(json_path) else {}
-
-    def get_final_out_path(self, out_path):
-        return f"{os.path.splitext(out_path)[0]}.html" if out_path.endswith('index.md') else os.path.join(os.path.splitext(out_path)[0], "index.html")
-    
     def add_collections(self, custom_function):
         self.custom_collections.extend(custom_function)
 
@@ -85,8 +82,8 @@ class Jan26Gen:
         return collections
 
     def build_collections(self):
-        markdown_files = self.get_markdown_files()
-        global_data_dict = self.load_global_data()
+        markdown_files = self.file_generator.get_markdown_files(self.content_dir)
+        global_data_dict = self.content_parser.load_global_data(self.global_data_dir)
         collections = {}
 
         for markdown_file in markdown_files:
@@ -114,7 +111,7 @@ class Jan26Gen:
             out_dir_name = os.path.splitext(out_path)[0]
             context.update({'out_dir_name': out_dir_name})
 
-            final_out_path = self.get_final_out_path(out_path)
+            final_out_path = self.file_generator.get_final_out_path(out_path)
             context.update({'final_out_path': final_out_path})
 
             write_to_file = self.template_renderer.render(layout, {'content': html_content, **global_data_dict })
@@ -154,6 +151,6 @@ function_names = [name for name in dir(custom_collections) if callable(getattr(c
 custom_collections_fn = [getattr(custom_collections, name) for name in function_names]
 
 if __name__ == '__main__':
-    s = Jan26Gen()
-    s.add_collections(custom_collections_fn)
-    print(s.generate_static_site())
+    gen = Jan26Gen()
+    gen.add_collections(custom_collections_fn)
+    print(gen.generate_static_site())
