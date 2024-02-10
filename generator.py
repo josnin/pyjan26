@@ -12,6 +12,31 @@ import settings
 settings_variables = {key: value for key, value in settings.__dict__.items() if not key.startswith('__')}
 
 
+def paginate(collection, page_size):
+    """
+    Convert a collection list into a paginated list.
+    
+    Parameters:
+        collection (list): The original collection list.
+        page_size (int): The number of items per page.
+        
+    Returns:
+        list: A list of pages, where each page is a sublist of the original collection.
+    """
+    paginated_list = []
+    for i in range(0, len(collection), page_size):
+        paginated_list.append(collection[i:i + page_size])
+    return paginated_list
+
+## Example usage:
+#collection_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+#page_size = 3
+#paginated_list = paginate(collection_list, page_size)
+#for page_number, page_items in enumerate(paginated_list, start=1):
+#    print(f"Page {page_number}: {page_items}")
+
+
+
 def load_json_data(json_path):
     return json.load(open(json_path, 'r', encoding='utf-8')) if os.path.exists(json_path) else {}
 
@@ -87,6 +112,7 @@ class TemplateRenderer:
 
 class FileGenerator:
     def generate(self, out_dir_name, final_out_path, write_to_file):
+
         os.makedirs(out_dir_name, exist_ok=True)
         print('makedirs', out_dir_name)
 
@@ -125,7 +151,11 @@ class Jan26Gen:
         for function in self.custom_collections:
             custom_collections = function(collections)
             for name, items in custom_collections.items():
-                collections.setdefault(name, []).extend(items)
+                if isinstance(items, list):
+                    collections.setdefault(name, []).extend(items)
+                else:
+                    collections.setdefault(name, items)
+
         return collections
 
     def build_collections(self):
@@ -144,50 +174,50 @@ class Jan26Gen:
             layout = frontmatter_data.get('layout', self.default_layout)
             context.update({'layout': layout})
 
-            permalink = frontmatter_data.get('permalink')
+            permalink = frontmatter_data.get('out_path')
             if permalink:
-                context.update({'permalink': self.template_renderer.render_string(permalink, context_w_global_dict)})
-
-            html_content = self.template_renderer.render_string(frontmatter_data.content, context_w_global_dict)
-            context.update({'html_content': html_content})
-
-            out_path = os.path.join(self.output_dir, self.template_renderer.render_string(permalink, context_w_global_dict)) if permalink else markdown_file.replace(self.content_dir, self.output_dir)
-            context.update({'out_path': out_path})
-
-            out_dir_name = os.path.splitext(out_path)[0]
-            context.update({'out_dir_name': out_dir_name})
-
-            final_out_path = self.file_generator.get_final_out_path(out_path)
-            context.update({'final_out_path': final_out_path})
-
-            write_to_file = self.template_renderer.render(layout, {'content': html_content, **settings_variables })
-            context.update({'write_to_file': write_to_file})
+                context.update({'out_path': self.template_renderer.render_string(permalink, context_w_global_dict)})
+            else:
+                context.update({'out_path': f'{os.path.splitext(markdown_file.lstrip(self.content_dir))[0].rstrip("/index")}/index.html' })
 
             if collection_name not in collections:
                 collections[collection_name] = []
 
             collections[collection_name].append(context)
 
+
         collections.update(settings_variables)
 
         collections = self.build_custom_collections(collections)
 
+        #page_size = 1
+        #print(collections.get('post'))
+        #paginated_list = paginate(collections.get('post'), page_size)
+        #import pprint
+        #pprint.pprint(paginated_list)
 
         return collections
 
-
-    def render_collections(self):
-        self.template_renderer.build_custom_filters()
-        collections = self.build_collections()
+    def render_collections(self, collections):
 
         for collection_name, items in collections.items():
             for item in items:
-                if 'out_dir_name' in item:
-                    self.file_generator.generate(item['out_dir_name'], 
-                                                 item['final_out_path'], item['write_to_file'])
 
-    def generate_static_site(self):
-        self.render_collections()
+                if isinstance(item, dict) and item.get('content') and item.get('out_path'):
+
+                    item_w_settings_vars = { **item, **settings_variables}
+                    html_content = self.template_renderer.render_string(item['content'], item_w_settings_vars)
+
+                    final_out_path = f"{self.output_dir}{item['out_path']}"
+                    out_dir_name = os.path.dirname(final_out_path)
+
+                    write_to_file = self.template_renderer.render(item['layout'], {'content': html_content, **settings_variables })
+                    self.file_generator.generate(out_dir_name, final_out_path, write_to_file)
+
+    def generate_site(self):
+        self.template_renderer.build_custom_filters()
+        collections = self.build_collections()
+        self.render_collections(collections)
 
 
 if __name__ == '__main__':
@@ -199,6 +229,6 @@ if __name__ == '__main__':
     gen = Jan26Gen()
     if custom_filters_fn: gen.add_filters(custom_filters_fn)
     if custom_collections_fn: gen.add_collections(custom_collections_fn)
-    print(gen.generate_static_site())
+    print(gen.generate_site())
 
 

@@ -1,7 +1,7 @@
 ---
 layout: samplelayout.html
 tags: ["zup"]
-permalink: "newoutput"
+out_path: "/newoutput/index.html"
 ---
 # Page1
 

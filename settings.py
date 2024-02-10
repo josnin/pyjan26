@@ -1,13 +1,20 @@
 
 # Input directory / file
-TEMPLATE_DIR = '_templates'
-CONTENT_DIR = '_content'
+TEMPLATE_DIR = 'templates'
+CONTENT_DIR = 'content'
 
 # Output directory
 OUTPUT_DIR = 'public'
 
 # Layout / Templates
 DEFAULT_LAYOUT = 'base.html'
+
+
+# Copy Static files
+STATIC_PATHS = [
+    "images",
+    "*/robots.txt"
+]
 
 
 METADATA = {
