@@ -33,6 +33,8 @@ class TemplateRenderer:
             extensions=[MarkdownExtension],
         )
 
+        self.custom_filters = []
+
     def render(self, template_name, context):
         template = self.env.get_template(template_name)
         return template.render(context)
@@ -40,6 +42,16 @@ class TemplateRenderer:
     def render_string(self, content, context):
         template = self.env.from_string(content)
         return template.render(context)
+
+    def add_filters(self, custom_function):
+        self.custom_filters.extend(custom_function)
+
+    def build_custom_filters(self):
+        # Build filters using custom filters functions
+        # make use of function name
+        for custom_filter in self.custom_filters:
+            #print(custom_filter().__name__, custom_filter)
+            self.env.filters[custom_filter.__name__] = custom_filter
 
 class FileGenerator:
     def generate(self, out_dir_name, final_out_path, write_to_file):
@@ -69,6 +81,9 @@ class Jan26Gen:
         self.template_renderer = TemplateRenderer(self.template_dir)
         self.file_generator = FileGenerator()
         self.custom_collections = []
+
+    def add_filters(self, custom_filters):
+        self.template_renderer.add_filters(custom_filters)
 
     def add_collections(self, custom_function):
         self.custom_collections.extend(custom_function)
@@ -130,6 +145,7 @@ class Jan26Gen:
 
 
     def render_collections(self):
+        self.template_renderer.build_custom_filters()
         collections = self.build_collections()
 
         for collection_name, items in collections.items():
@@ -145,6 +161,7 @@ class Jan26Gen:
 if __name__ == '__main__':
 
     custom_collections_fn = None
+    custom_filters_fn = None
 
     try:
         import custom_collections
@@ -159,7 +176,21 @@ if __name__ == '__main__':
         print("custom_collections.py file not found. No custom collections will be added.")
 
 
+    try:
+        import custom_filters
+
+        # Get all function names from the module
+        function_names = [name for name in dir(custom_filters) if callable(getattr(custom_filters, name))]
+
+        # Get the function objects using getattr() and pass them to add_filters
+        custom_filters_fn = [getattr(custom_filters, name) for name in function_names]
+
+    except ImportError:
+        print("custom_filters.py file not found. No custom filters will be added.")
+
+
     gen = Jan26Gen()
+    if custom_filters_fn: gen.add_filters(custom_filters_fn)
     if custom_collections_fn: gen.add_collections(custom_collections_fn)
     print(gen.generate_static_site())
 

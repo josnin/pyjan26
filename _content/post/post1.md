@@ -6,7 +6,7 @@ tags: ["vue", "react"]
 
 # Post1 page
 
-{{ METADATA.abc }}
+{{ METADATA.abc | custom_filter_function1 }}
 
 {{ tags }}
 
