@@ -15,6 +15,38 @@ settings_variables = {key: value for key, value in settings.__dict__.items() if 
 def load_json_data(json_path):
     return json.load(open(json_path, 'r', encoding='utf-8')) if os.path.exists(json_path) else {}
 
+def get_custom_collections_fn():
+    res = None
+    try:
+        import custom_collections
+
+        # Get all function names from the module
+        function_names = [name for name in dir(custom_collections) if callable(getattr(custom_collections, name))]
+
+        # Get the function objects using getattr() and pass them to add_collections
+        res = [getattr(custom_collections, name) for name in function_names]
+
+    except ImportError:
+        print("custom_collections.py file not found. No custom collections will be added.")
+
+    return res
+
+def get_custom_filters_fn():
+    res = None
+    try:
+        import custom_filters
+
+        # Get all function names from the module
+        function_names = [name for name in dir(custom_filters) if callable(getattr(custom_filters, name))]
+
+        # Get the function objects using getattr() and pass them to add_filters
+        res = [getattr(custom_filters, name) for name in function_names]
+
+    except ImportError:
+        print("custom_filters.py file not found. No custom filters will be added.")
+    
+    return res
+
 class ContentParser:
 
     def load_markdown_data(self, md_json_path):
@@ -160,33 +192,8 @@ class Jan26Gen:
 
 if __name__ == '__main__':
 
-    custom_collections_fn = None
-    custom_filters_fn = None
-
-    try:
-        import custom_collections
-
-        # Get all function names from the module
-        function_names = [name for name in dir(custom_collections) if callable(getattr(custom_collections, name))]
-
-        # Get the function objects using getattr() and pass them to add_collections
-        custom_collections_fn = [getattr(custom_collections, name) for name in function_names]
-
-    except ImportError:
-        print("custom_collections.py file not found. No custom collections will be added.")
-
-
-    try:
-        import custom_filters
-
-        # Get all function names from the module
-        function_names = [name for name in dir(custom_filters) if callable(getattr(custom_filters, name))]
-
-        # Get the function objects using getattr() and pass them to add_filters
-        custom_filters_fn = [getattr(custom_filters, name) for name in function_names]
-
-    except ImportError:
-        print("custom_filters.py file not found. No custom filters will be added.")
+    custom_collections_fn = get_custom_collections_fn()
+    custom_filters_fn = get_custom_filters_fn()
 
 
     gen = Jan26Gen()
