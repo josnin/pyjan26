@@ -201,6 +201,8 @@ class Jan26Gen:
             for item in items:
                 if isinstance(item, dict) and item.get('content') and item.get('out_path'):
                     if item.get('page_size') and item.get('pagination_items'):
+                        self.render_paginated_collection(collection_name, item.get('pagination_items'))
+                    elif item.get('page_size'):
                         self.render_paginated_collection(collection_name, items)
                     else:
                         page_data = {'collection_name': collection_name, 'items': item}
