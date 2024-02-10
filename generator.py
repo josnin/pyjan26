@@ -124,9 +124,6 @@ class FileGenerator:
     def get_markdown_files(self, content_dir):
         return glob.glob(os.path.join(content_dir, "**/*.md"), recursive=True)
 
-    def get_final_out_path(self, out_path):
-        return f"{os.path.splitext(out_path)[0]}.html" if out_path.endswith('index.md') else os.path.join(os.path.splitext(out_path)[0], "index.html")
-
 
 class Jan26Gen:
     def __init__(self):
@@ -202,17 +199,30 @@ class Jan26Gen:
 
         for collection_name, items in collections.items():
             for item in items:
-
                 if isinstance(item, dict) and item.get('content') and item.get('out_path'):
+                    if item.get('page_size') and item.get('pagination_items'):
+                        self.render_paginated_collection(collection_name, items)
+                    else:
+                        page_data = {'collection_name': collection_name, 'items': item}
+                        self.render_page(page_data, collection_name, 1)
 
-                    item_w_settings_vars = { **item, **settings_variables}
-                    html_content = self.template_renderer.render_string(item['content'], item_w_settings_vars)
+    def render_paginated_collection(self, collection_name, items):
+        import math
+        num_pages = math.ceil(len(items) / self.items_per_page)
+        for page_num in range(1, num_pages + 1):
+            paginated_items = items[(page_num - 1) * self.items_per_page:page_num * self.items_per_page]
+            page_data = {'collection_name': collection_name, 'items': paginated_items}
+            self.render_page(page_data, collection_name, page_num)
 
-                    final_out_path = f"{self.output_dir}{item['out_path']}"
-                    out_dir_name = os.path.dirname(final_out_path)
+    def render_page(self, page_data, collection_name, page_num):
+        item_w_settings_vars = { **page_data['items'], **settings_variables}
+        html_content = self.template_renderer.render_string(page_data['items']['content'], item_w_settings_vars)
 
-                    write_to_file = self.template_renderer.render(item['layout'], {'content': html_content, **settings_variables })
-                    self.file_generator.generate(out_dir_name, final_out_path, write_to_file)
+        final_out_path = f"{self.output_dir}{page_data['items']['out_path']}"
+        out_dir_name = os.path.dirname(final_out_path)
+
+        write_to_file = self.template_renderer.render(page_data['items']['layout'], {'content': html_content, **settings_variables })
+        self.file_generator.generate(out_dir_name, final_out_path, write_to_file)
 
     def generate_site(self):
         self.template_renderer.build_custom_filters()
