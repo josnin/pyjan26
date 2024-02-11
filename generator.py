@@ -103,15 +103,15 @@ class TemplateRenderer:
             self.env.filters[custom_filter.__name__] = custom_filter
 
 class FileGenerator:
-    def generate(self, out_dir_name, final_out_path, write_to_file):
+    def generate(self, out_dir, final_path, rendered_template):
 
-        os.makedirs(out_dir_name, exist_ok=True)
-        print('makedirs', out_dir_name)
+        os.makedirs(out_dir, exist_ok=True)
+        print('makedirs', out_dir)
 
-        with open(final_out_path, 'w', encoding='utf-8') as f:
-            f.write(write_to_file)
+        with open(final_path, 'w', encoding='utf-8') as f:
+            f.write(rendered_template)
 
-        print(f'write_to_file {final_out_path}')
+        print(f'write_to_file {final_path}')
 
     def get_markdown_files(self, content_dir):
         return glob.glob(os.path.join(content_dir, "**/*.md"), recursive=True)
@@ -226,20 +226,20 @@ class Jan26Gen:
         html_content = self.template_renderer.render_string(page_data['items']['content'], item_w_collections)
 
         if page_num:
-            final_out_path = f"{self.output_dir}/{collection_name}/{page_num}/index.html"
-            out_dir_name = f'{self.output_dir}/{collection_name}/{page_num}'
+            final_out = f"{self.output_dir}/{collection_name}/{page_num}/index.html"
+            out_dir = f'{self.output_dir}/{collection_name}/{page_num}'
         elif file_name == 'index':
-            final_out_path = f"{self.output_dir}/{collection_name}/index.html"
-            out_dir_name = f'{self.output_dir}/{collection_name}'
+            final_out = f"{self.output_dir}/{collection_name}/index.html"
+            out_dir = f'{self.output_dir}/{collection_name}'
         else:
-            final_out_path = f"{self.output_dir}/{collection_name}/{file_name}/index.html"
-            out_dir_name = f'{self.output_dir}/{collection_name}/{file_name}'
+            final_out = f"{self.output_dir}/{collection_name}/{file_name}/index.html"
+            out_dir = f'{self.output_dir}/{collection_name}/{file_name}'
 
-        write_to_file = self.template_renderer.render(
+        rendered_template = self.template_renderer.render(
             page_data['items']['layout'], 
             {'content': html_content, **collections, **page_items}
         )
-        self.file_generator.generate(out_dir_name, final_out_path, write_to_file)
+        self.file_generator.generate(out_dir, final_out, rendered_template)
 
     def generate_site(self):
         self.template_renderer.build_custom_filters()
