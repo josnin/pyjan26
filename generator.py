@@ -228,7 +228,7 @@ class Jan26Gen:
         if page_data.get('page_items'):
             page_items = {f'paginated{collection_name.title()}': page_data['page_items']}
 
-        item_w_collections = {
+        context = {
             **items,
             'collections': collections, 
             'settings': settings, **page_items,
@@ -240,7 +240,7 @@ class Jan26Gen:
         file_name = os.path.splitext(items['file_name'])[0]
 
         # Render Markdown HTML content
-        html_content = self.template_renderer.render_string(items['content'], item_w_collections)
+        html_content = self.template_renderer.render_string(items['content'], context)
 
         if page_num:
             out_dir = f'{self.output_dir}/{collection_name}/{page_num}'
