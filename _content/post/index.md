@@ -11,4 +11,7 @@ title: Index Post
 oh my??
 
 
+{{ metadata }}
+
+
 Im index post

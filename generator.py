@@ -9,7 +9,7 @@ from jinja2_markdown import MarkdownExtension
 import settings
 
 # Get only variables from settings module
-settings_variables = {key: value for key, value in settings.__dict__.items() if not key.startswith('__')}
+settings_variables = {key.lower() : value for key, value in settings.__dict__.items() if not key.startswith('__')}
 
 
 def paginate(collection, page_size):
