@@ -1,12 +1,18 @@
 ---
 layout: page.html
 title: Index Post
+page_size: 2
+paginated_items: post
 ---
 
 # Index post
 
 
-{{ layout }}
+{% for page in paginatedPost %}
+    <span>{{ page.layout }}</span>
+{% endfor %}
+
+
 
 
 
