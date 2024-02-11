@@ -9,7 +9,7 @@ from jinja2_markdown import MarkdownExtension
 import settings
 
 # Get only variables from settings module
-settings_variables = {key.lower() : value for key, value in settings.__dict__.items() if not key.startswith('__')}
+settings_variables = {key: value for key, value in settings.__dict__.items() if not key.startswith('__')}
 
 
 def paginate(collection, page_size):
@@ -149,19 +149,18 @@ class Jan26Gen:
 
     def build_collections(self):
         markdown_files = self.file_generator.get_markdown_files(self.content_dir)
-        collections = {}
+        collections = { 'collections': {} }
 
         for markdown_file in markdown_files:
             frontmatter_data, markdown_data_dict = self.content_parser.parse(markdown_file)  
             collection_name = os.path.basename(os.path.dirname(markdown_file))
 
-            # predefined collections starts here
-
-            context = {**markdown_data_dict, **frontmatter_data.to_dict()}
-            context_w_global_dict = { **context, **settings_variables }
-
-            layout = frontmatter_data.get('layout', self.default_layout)
-            context.update({'layout': layout})
+            context = {
+                **markdown_data_dict, 
+                **frontmatter_data.to_dict(),
+                'layout': frontmatter_data.get('layout', self.default_layout),
+                'file_name': os.path.basename(markdown_file)
+            }
 
             #permalink = frontmatter_data.get('out_path')
             #if permalink:
@@ -169,29 +168,35 @@ class Jan26Gen:
             #else:
             #    context.update({'out_path': f'{os.path.splitext(markdown_file.lstrip(self.content_dir))[0].rstrip("/index")}/index.html' })
 
-            context.update({'file_name': os.path.basename(markdown_file)})
 
-            if collection_name not in collections:
-                collections[collection_name] = []
+            if collection_name not in collections['collections']:
+                collections['collections'][collection_name] = []
 
-            collections[collection_name].append(context)
+            collections['collections'][collection_name].append(context)
 
 
-        collections.update(settings_variables)
+        collections.update({'settings' : settings_variables})
 
-        collections = self.build_custom_collections(collections)
+        collections['collections'] = self.build_custom_collections(collections['collections'])
 
         return collections
 
-    def render_collections(self, collections):
+    def render_collections(self, objs):
+        collections = objs.get('collections', {})
+        settings = objs.get('settings', {})
 
         for collection_name, items in collections.items():
             for item in items:
                 if isinstance(item, dict) and item.get('file_name'):
                     if item.get('page_size') and item.get('paginated_items'):
-                        self.render_paginated_collection(item, collection_name, collections)
+                        self.render_paginated_collection(item, collection_name, objs)
                     else:
-                        page_data = {'collection_name': collection_name, 'collections': collections,  'items': item }
+                        page_data = {
+                            'collection_name': collection_name, 
+                            'collections': collections,  
+                            'settings': settings, 
+                            'items': item 
+                        }
                         self.render_page(page_data)
 
     def render_paginated_collection(self, items, collection_name, collections):
@@ -215,29 +220,39 @@ class Jan26Gen:
 
     def render_page(self, page_data, page_num=None):
         collections = page_data['collections']
+        items = page_data['items']
+        settings = page_data['settings']
         collection_name = page_data['collection_name']
         page_items = {}
 
         if page_data.get('page_items'):
             page_items = {f'paginated{collection_name.title()}': page_data['page_items']}
 
-        item_w_collections = {**page_data['items'], **collections, **page_items}
-        file_name = os.path.splitext(page_data['items']['file_name'])[0]
-        html_content = self.template_renderer.render_string(page_data['items']['content'], item_w_collections)
+        item_w_collections = {
+            **items,
+            'collections': collections, 
+            'settings': settings, **page_items
+        }
+
+        # Extract file name from item
+        file_name = os.path.splitext(items['file_name'])[0]
+
+        # Render Markdown HTML content
+        html_content = self.template_renderer.render_string(items['content'], item_w_collections)
 
         if page_num:
-            final_out = f"{self.output_dir}/{collection_name}/{page_num}/index.html"
             out_dir = f'{self.output_dir}/{collection_name}/{page_num}'
         elif file_name == 'index':
-            final_out = f"{self.output_dir}/{collection_name}/index.html"
             out_dir = f'{self.output_dir}/{collection_name}'
         else:
-            final_out = f"{self.output_dir}/{collection_name}/{file_name}/index.html"
             out_dir = f'{self.output_dir}/{collection_name}/{file_name}'
+
+        final_out = f'{out_dir}/index.html'
+
 
         rendered_template = self.template_renderer.render(
             page_data['items']['layout'], 
-            {'content': html_content, **collections, **page_items}
+            {'content': html_content, 'collections': collections, 'settings': settings, **page_items}
         )
         self.file_generator.generate(out_dir, final_out, rendered_template)
 
