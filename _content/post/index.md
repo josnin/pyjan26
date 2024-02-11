@@ -5,13 +5,9 @@ title: Index Post
 
 # Index post
 
-{% for collection in collection1 %}
-    <span>{{collection.content}}</span>
-{% endfor %}
-oh my??
 
+{{ layout }}
 
-{{ metadata }}
 
 
 Im index post

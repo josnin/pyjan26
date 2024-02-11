@@ -171,11 +171,13 @@ class Jan26Gen:
             layout = frontmatter_data.get('layout', self.default_layout)
             context.update({'layout': layout})
 
-            permalink = frontmatter_data.get('out_path')
-            if permalink:
-                context.update({'out_path': self.template_renderer.render_string(permalink, context_w_global_dict)})
-            else:
-                context.update({'out_path': f'{os.path.splitext(markdown_file.lstrip(self.content_dir))[0].rstrip("/index")}/index.html' })
+            #permalink = frontmatter_data.get('out_path')
+            #if permalink:
+            #    context.update({'out_path': self.template_renderer.render_string(permalink, context_w_global_dict)})
+            #else:
+            #    context.update({'out_path': f'{os.path.splitext(markdown_file.lstrip(self.content_dir))[0].rstrip("/index")}/index.html' })
+
+            context.update({'file_name': os.path.basename(markdown_file)})
 
             if collection_name not in collections:
                 collections[collection_name] = []
@@ -187,46 +189,49 @@ class Jan26Gen:
 
         collections = self.build_custom_collections(collections)
 
-        #page_size = 1
-        #print(collections.get('post'))
-        #paginated_list = paginate(collections.get('post'), page_size)
-        #import pprint
-        #pprint.pprint(paginated_list)
-
         return collections
 
     def render_collections(self, collections):
 
         for collection_name, items in collections.items():
             for item in items:
-                if isinstance(item, dict) and item.get('content') and item.get('out_path'):
-                    if item.get('page_size') and item.get('pagination_items'):
-                        self.render_paginated_collection(collection_name, item.get('pagination_items'))
-                    elif item.get('page_size'):
-                        self.render_paginated_collection(collection_name, items)
+                if isinstance(item, dict) and item.get('file_name'):
+                    if item.get('page_size') and item.get('paginated_items'):
+                        #items = collections.get(item['pagination_items'])
+                        self.render_paginated_collection(item, collection_name, collections)
+                    #elif item.get('page_size'):
+                    #    self.render_paginated_collection(items, collection_name, collections)
                     else:
                         page_data = {'collection_name': collection_name, 'items': item }
                         self.render_page(page_data, collection_name, collections, 1)
 
-    def render_paginated_collection(self, collection_name, items):
+    def render_paginated_collection(self, items, collection_name, collections):
         # Example usage:
         page_size = items.get('page_size')
+        items = collections[items.get('paginated_items')]
         paginated_list = paginate(items, page_size)
-        for page_number, page_items in enumerate(paginated_list, start=1):
-            print(f"Page {page_number}: {page_items}")
-        #import math
-        #num_pages = math.ceil(len(items) / self.items_per_page)
-        #for page_num in range(1, num_pages + 1):
-        #    paginated_items = items[(page_num - 1) * self.items_per_page:page_num * self.items_per_page]
-        #    page_data = {'collection_name': collection_name, 'items': paginated_items}
-        #    self.render_page(page_data, collection_name, page_num)
+        import pdb; pdb.set_trace()
+        print(f'paginated_list {paginated_list}')
+        for page_num, page_items in enumerate(paginated_list, start=1):
+            print(f"Page {page_num}: {page_items}")
+            page_data = {'collection_name': collection_name, 'items': items }
+            self.render_page(page_data, collection_name, collections, page_num)
 
-    def render_page(self, page_data, collection_name, collections, page_num):
+    def render_page(self, page_data, collection_name, collections, page_num=None):
         item_w_collections = { **page_data['items'], **collections}
+        file_name = os.path.splitext(page_data['items']['file_name'])[0]
         html_content = self.template_renderer.render_string(page_data['items']['content'], item_w_collections)
 
-        final_out_path = f"{self.output_dir}{page_data['items']['out_path']}"
-        out_dir_name = os.path.dirname(final_out_path)
+        if file_name == 'index': 
+            final_out_path = f"{self.output_dir}/{collection_name}/index.html"
+            out_dir_name = f'{self.output_dir}/{collection_name}'
+        elif page_num:
+            final_out_path = f"{self.output_dir}/{collection_name}/{page_num}/index.html"
+            out_dir_name = f'{self.output_dir}/{collection_name}/{page_num}'
+        else:
+            final_out_path = f"{self.output_dir}/{collection_name}/{file_name}/index.html"
+            out_dir_name = f'{self.output_dir}/{collection_name}'
+
 
         write_to_file = self.template_renderer.render(page_data['items']['layout'], {'content': html_content, **collections })
         self.file_generator.generate(out_dir_name, final_out_path, write_to_file)
