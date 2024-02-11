@@ -219,11 +219,11 @@ class Jan26Gen:
 
 
     def render_page(self, page_data, page_num=None):
-        collections = page_data['collections']
-        items = page_data['items']
-        settings = page_data['settings']
-        collection_name = page_data['collection_name']
-        page_items = {}
+        collections = page_data.get('collections', {})
+        items = page_data.get('items', {})
+        settings = page_data.get('settings', {})
+        collection_name = page_data.get('collection_name', '')
+        page_items = page_data.get('page_items', {})
 
         if page_data.get('page_items'):
             page_items = {f'paginated{collection_name.title()}': page_data['page_items']}
@@ -231,8 +231,10 @@ class Jan26Gen:
         item_w_collections = {
             **items,
             'collections': collections, 
-            'settings': settings, **page_items
+            'settings': settings, **page_items,
+            **({f'paginated{collection_name.title()}': page_items} if page_items else {})
         }
+
 
         # Extract file name from item
         file_name = os.path.splitext(items['file_name'])[0]
@@ -242,8 +244,12 @@ class Jan26Gen:
 
         if page_num:
             out_dir = f'{self.output_dir}/{collection_name}/{page_num}'
+        elif file_name == 'index' and collection_name == self.content_dir:
+            out_dir = self.output_dir
         elif file_name == 'index':
             out_dir = f'{self.output_dir}/{collection_name}'
+        elif collection_name == self.content_dir:
+            out_dir = f'{self.output_dir}/{file_name}'
         else:
             out_dir = f'{self.output_dir}/{collection_name}/{file_name}'
 
