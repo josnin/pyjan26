@@ -7,9 +7,7 @@ out_path: "/post/xyz/index.html"
 
 # Post1 page
 
-{{ METADATA.abc }}
 
-{{ tags }}
 
 
 Im in Post2 page

@@ -29,11 +29,11 @@ def paginate(collection, page_size):
     return paginated_list
 
 ## Example usage:
-#collection_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-#page_size = 3
-#paginated_list = paginate(collection_list, page_size)
-#for page_number, page_items in enumerate(paginated_list, start=1):
-#    print(f"Page {page_number}: {page_items}")
+collection_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+page_size = 3
+paginated_list = paginate(collection_list, page_size)
+for page_number, page_items in enumerate(paginated_list, start=1):
+    print(f"Page {page_number}: {page_items}")
 
 
 
@@ -205,25 +205,30 @@ class Jan26Gen:
                     elif item.get('page_size'):
                         self.render_paginated_collection(collection_name, items)
                     else:
-                        page_data = {'collection_name': collection_name, 'items': item}
-                        self.render_page(page_data, collection_name, 1)
+                        page_data = {'collection_name': collection_name, 'items': item }
+                        self.render_page(page_data, collection_name, collections, 1)
 
     def render_paginated_collection(self, collection_name, items):
-        import math
-        num_pages = math.ceil(len(items) / self.items_per_page)
-        for page_num in range(1, num_pages + 1):
-            paginated_items = items[(page_num - 1) * self.items_per_page:page_num * self.items_per_page]
-            page_data = {'collection_name': collection_name, 'items': paginated_items}
-            self.render_page(page_data, collection_name, page_num)
+        # Example usage:
+        page_size = items.get('page_size')
+        paginated_list = paginate(items, page_size)
+        for page_number, page_items in enumerate(paginated_list, start=1):
+            print(f"Page {page_number}: {page_items}")
+        #import math
+        #num_pages = math.ceil(len(items) / self.items_per_page)
+        #for page_num in range(1, num_pages + 1):
+        #    paginated_items = items[(page_num - 1) * self.items_per_page:page_num * self.items_per_page]
+        #    page_data = {'collection_name': collection_name, 'items': paginated_items}
+        #    self.render_page(page_data, collection_name, page_num)
 
-    def render_page(self, page_data, collection_name, page_num):
-        item_w_settings_vars = { **page_data['items'], **settings_variables}
-        html_content = self.template_renderer.render_string(page_data['items']['content'], item_w_settings_vars)
+    def render_page(self, page_data, collection_name, collections, page_num):
+        item_w_collections = { **page_data['items'], **collections}
+        html_content = self.template_renderer.render_string(page_data['items']['content'], item_w_collections)
 
         final_out_path = f"{self.output_dir}{page_data['items']['out_path']}"
         out_dir_name = os.path.dirname(final_out_path)
 
-        write_to_file = self.template_renderer.render(page_data['items']['layout'], {'content': html_content, **settings_variables })
+        write_to_file = self.template_renderer.render(page_data['items']['layout'], {'content': html_content, **collections })
         self.file_generator.generate(out_dir_name, final_out_path, write_to_file)
 
     def generate_site(self):

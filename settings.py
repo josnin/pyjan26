@@ -1,7 +1,7 @@
 
 # Input directory / file
-TEMPLATE_DIR = 'templates'
-CONTENT_DIR = 'content'
+TEMPLATE_DIR = '_templates'
+CONTENT_DIR = '_content'
 
 # Output directory
 OUTPUT_DIR = 'public'
