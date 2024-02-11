@@ -189,7 +189,7 @@ class Jan26Gen:
             for item in items:
                 if isinstance(item, dict) and item.get('file_name'):
                     if item.get('page_size') and item.get('paginated_items'):
-                        self.render_paginated_collection(item, collection_name, objs)
+                        self.render_paginated_collection(item, collection_name, collections, settings)
                     else:
                         page_data = {
                             'collection_name': collection_name, 
@@ -199,9 +199,11 @@ class Jan26Gen:
                         }
                         self.render_page(page_data)
 
-    def render_paginated_collection(self, items, collection_name, collections):
+    def render_paginated_collection(self, items, collection_name, collections, settings):
+        import pdb; pdb.set_trace()
         page_size = items.get('page_size')
         paginated_items = collections.get(items.get('paginated_items'), [])
+        alias = items.get('paginated_alias')
         paginated_list = paginate(paginated_items, page_size)
 
         for page_num, page_items in enumerate(paginated_list, start=1):
@@ -209,8 +211,10 @@ class Jan26Gen:
             page_data = {
                 'collection_name': collection_name,
                 'collections': collections,
+                'settings': settings,
                 'items': items,
                 'page_items': page_items, 
+                'alias': alias, 
                 'prev_page': None,
                 'next_page': None,
                 'page_num': page_num
@@ -225,15 +229,14 @@ class Jan26Gen:
         collection_name = page_data.get('collection_name', '')
         page_items = page_data.get('page_items', {})
 
-        if page_data.get('page_items'):
-            page_items = {f'paginated{collection_name.title()}': page_data['page_items']}
-
         context = {
             **items,
             'collections': collections, 
-            'settings': settings, **page_items,
+            'settings': settings,
             **({f'paginated{collection_name.title()}': page_items} if page_items else {})
         }
+        #import pprint
+        #pprint.pprint(context)
 
 
         # Extract file name from item
@@ -258,8 +261,10 @@ class Jan26Gen:
 
         rendered_template = self.template_renderer.render(
             page_data['items']['layout'], 
-            {'content': html_content, 'collections': collections, 'settings': settings, **page_items}
+            {'content': html_content, 'collections': collections, 'settings': settings}
         )
+        #import pprint
+        #pprint.pprint({'content': html_content, **context})
         self.file_generator.generate(out_dir, final_out, rendered_template)
 
     def generate_site(self):
