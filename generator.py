@@ -196,39 +196,49 @@ class Jan26Gen:
 
     def render_paginated_collection(self, items, collection_name, collections):
         page_size = items.get('page_size')
-        paginated_items = collections[items.get('paginated_items')]
+        paginated_items = collections.get(items.get('paginated_items'), [])
         paginated_list = paginate(paginated_items, page_size)
 
         for page_num, page_items in enumerate(paginated_list, start=1):
-            print(f"Page {page_num}: {page_items}")
-            page_data = {'collection_name': collection_name, 'collections': collections,  'items': items, 'page_items': page_items, 
-                         'prev_page': None, 'next_page': None, 'page_num': page_num }
-            self.render_page(page_data, page_num)  
+            #print(f"Page {page_num}: {page_items}")
+            page_data = {
+                'collection_name': collection_name,
+                'collections': collections,
+                'items': items,
+                'page_items': page_items, 
+                'prev_page': None,
+                'next_page': None,
+                'page_num': page_num
+            }
+            self.render_page(page_data, page_num)
 
 
     def render_page(self, page_data, page_num=None):
         collections = page_data['collections']
         collection_name = page_data['collection_name']
         page_items = {}
-        if page_data.get('page_items'):
-            page_items = { f'paginated{collection_name.title()}': page_data['page_items'] }
-        item_w_collections = { **page_data['items'], **collections, **page_items}
 
+        if page_data.get('page_items'):
+            page_items = {f'paginated{collection_name.title()}': page_data['page_items']}
+
+        item_w_collections = {**page_data['items'], **collections, **page_items}
         file_name = os.path.splitext(page_data['items']['file_name'])[0]
         html_content = self.template_renderer.render_string(page_data['items']['content'], item_w_collections)
 
         if page_num:
             final_out_path = f"{self.output_dir}/{collection_name}/{page_num}/index.html"
             out_dir_name = f'{self.output_dir}/{collection_name}/{page_num}'
-        elif file_name == 'index': 
+        elif file_name == 'index':
             final_out_path = f"{self.output_dir}/{collection_name}/index.html"
             out_dir_name = f'{self.output_dir}/{collection_name}'
         else:
             final_out_path = f"{self.output_dir}/{collection_name}/{file_name}/index.html"
             out_dir_name = f'{self.output_dir}/{collection_name}/{file_name}'
 
-
-        write_to_file = self.template_renderer.render(page_data['items']['layout'], {'content': html_content, **collections, **page_items })
+        write_to_file = self.template_renderer.render(
+            page_data['items']['layout'], 
+            {'content': html_content, **collections, **page_items}
+        )
         self.file_generator.generate(out_dir_name, final_out_path, write_to_file)
 
     def generate_site(self):
