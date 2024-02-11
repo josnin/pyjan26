@@ -28,14 +28,6 @@ def paginate(collection, page_size):
         paginated_list.append(collection[i:i + page_size])
     return paginated_list
 
-## Example usage:
-collection_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-page_size = 3
-paginated_list = paginate(collection_list, page_size)
-for page_number, page_items in enumerate(paginated_list, start=1):
-    print(f"Page {page_number}: {page_items}")
-
-
 
 def load_json_data(json_path):
     return json.load(open(json_path, 'r', encoding='utf-8')) if os.path.exists(json_path) else {}
@@ -220,7 +212,6 @@ class Jan26Gen:
         page_items = {}
         if page_data.get('page_items'):
             page_items = { f'paginated{collection_name.title()}': page_data['page_items'] }
-            item_w_collections = { **page_data['items'], **collections, **page_items}
         item_w_collections = { **page_data['items'], **collections, **page_items}
 
         file_name = os.path.splitext(page_data['items']['file_name'])[0]
