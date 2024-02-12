@@ -16,6 +16,8 @@ STATIC_PATHS = [
     "*/robots.txt"
 ]
 
+PAGE_SIZE = 10
+
 
 METADATA = {
     "abc": "efg"

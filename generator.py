@@ -188,7 +188,7 @@ class Jan26Gen:
         for collection_name, items in collections.items():
             for item in items:
                 if isinstance(item, dict) and item.get('file_name'):
-                    if item.get('page_size') and item.get('paginated_items'):
+                    if item.get('paginated'):
                         self.render_paginated_collection(item, collection_name, collections, settings)
                     else:
                         page_data = {
@@ -200,10 +200,10 @@ class Jan26Gen:
                         self.render_page(page_data)
 
     def render_paginated_collection(self, items, collection_name, collections, settings):
-        import pdb; pdb.set_trace()
-        page_size = items.get('page_size')
-        paginated_items = collections.get(items.get('paginated_items'), [])
-        alias = items.get('paginated_alias')
+        paginated = items.get('paginated', {})
+        paginated_items = collections.get(paginated.get('items'), [])
+        page_size = paginated.get('size', settings.PAGE_SIZE)
+        alias = paginated.get('alias', f'paginated{collection_name.title()}')
         paginated_list = paginate(paginated_items, page_size)
 
         for page_num, page_items in enumerate(paginated_list, start=1):
@@ -214,7 +214,7 @@ class Jan26Gen:
                 'settings': settings,
                 'items': items,
                 'page_items': page_items, 
-                'alias': alias, 
+                'alias': alias,
                 'prev_page': None,
                 'next_page': None,
                 'page_num': page_num
@@ -228,12 +228,13 @@ class Jan26Gen:
         settings = page_data.get('settings', {})
         collection_name = page_data.get('collection_name', '')
         page_items = page_data.get('page_items', {})
+        alias = page_data.get('alias')
 
         context = {
             **items,
             'collections': collections, 
             'settings': settings,
-            **({f'paginated{collection_name.title()}': page_items} if page_items else {})
+            **({alias : page_items} if page_items else {})
         }
         #import pprint
         #pprint.pprint(context)

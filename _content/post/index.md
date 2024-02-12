@@ -1,15 +1,17 @@
 ---
 layout: page.html
 title: Index Post
-page_size: 2
-paginated_items: post
+paginated:
+  size: 2
+  items: post
+  alias: blogPosts
 ---
 
 # Index post
 
 
-{% for page in paginatedPost %}
-    <span>{{ page.layout }}</span>
+{% for page in blogPosts %}
+    <span>{{ page.url }}</span>
 {% endfor %}
 
 
