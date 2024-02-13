@@ -14,8 +14,18 @@ paginated:
     <span>{{ page.url }}</span>
 {% endfor %}
 
-{{ pagination.prev_page }}
-{{ pagination.next_page }}
+
+{% if pagination.prev_page %}
+  <a href="{{ pagination.prev_page }}">Previous</a>
+{% endif %}
+
+{% for page_num in pagination.page_numbers %}
+  <a href="/post/{{ page_num }}">{{ page_num }}</a>
+{% endfor %}
+
+{% if pagination.next_page %}
+  <a href="{{ pagination.next_page }}">Next</a>
+{% endif %}
 
 
 

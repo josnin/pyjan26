@@ -210,7 +210,7 @@ class Jan26Gen:
             item['url'] = f'/{collection_name}/{file_name}'
         return page_items
 
-    def generate_pagination_metadata(self, page_num, collection_name, total_pages):
+    def generate_pagination_metadata(self, page_num, collection_name, total_pages, page_numbers):
         prev_page_num = page_num - 1 if page_num > 1 else None
         next_page_num = page_num + 1 if page_num < total_pages else None
 
@@ -219,7 +219,8 @@ class Jan26Gen:
         next_page_url = f"/{collection_name}/{next_page_num}" if next_page_num else None
 
         pagination = {
-            'page_num': page_num,
+            'page_number': page_num,
+            'page_numbers': page_numbers,
             'total_pages': total_pages,
             'prev_page': prev_page_url,
             'next_page': next_page_url
@@ -235,6 +236,7 @@ class Jan26Gen:
         alias = paginated.get('alias', f'paginated{collection_name.title()}')
         paginated_list = paginate(paginated_items, page_size)
         total_pages = len(paginated_list)
+        page_numbers= list(range(1, total_pages + 1))
 
         for page_num, page_items in enumerate(paginated_list, start=1):
             #print(f"Page {page_num}: {page_items}")
@@ -242,7 +244,7 @@ class Jan26Gen:
             # Generate URLs for each page_item
             page_items_w_urls = self.generate_url(page_items, collection_name)
 
-            pagination_metadata = self.generate_pagination_metadata(page_num, collection_name, total_pages)
+            pagination_metadata = self.generate_pagination_metadata(page_num, collection_name, total_pages, page_numbers)
 
 
             page_data = {
