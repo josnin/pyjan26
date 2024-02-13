@@ -207,58 +207,95 @@ class Jan26Gen:
     def generate_url(self, out_dir, items, page_items, collection_name):
         for item in page_items:
             if out_dir:
-                #custom output directory w jinja template support from page items?
-                # w/o file_name?
-                # TODO: url doesnt fit??
-                out_dir = self.template_renderer.render_string(out_dir, page_items[0])
+                out_dir = self.render_output_directory(out_dir, page_items[0])
                 item['url'] = f'/{collection_name}/{out_dir}'
             else:
-                # Replace 'generate_url' with your logic to generate the URL
                 file_name = os.path.splitext(item['file_name'])[0]
                 item['url'] = f'/{collection_name}/{file_name}'
         return page_items
 
+    #def generate_url(self, out_dir, items, page_items, collection_name):
+    #    for item in page_items:
+    #        if out_dir:
+    #            #custom output directory w jinja template support from page items?
+    #            # w/o file_name?
+    #            # TODO: url doesnt fit??
+    #            out_dir = self.template_renderer.render_string(out_dir, page_items[0])
+    #            item['url'] = f'/{collection_name}/{out_dir}'
+    #        else:
+    #            # Replace 'generate_url' with your logic to generate the URL
+    #            file_name = os.path.splitext(item['file_name'])[0]
+    #            item['url'] = f'/{collection_name}/{file_name}'
+    #    return page_items
+
+    def render_output_directory(self, out_dir, page_item):
+        if self.template_renderer:
+            return self.template_renderer.render_string(out_dir, page_item)
+        return out_dir
+
     def get_pagination_metadata(self, out_dir, page_num, collection_name, total_pages, page_numbers, page_items):
+        if out_dir:
+            out_dir = self.render_output_directory(out_dir, page_items[0])
+            out_dir = f'/{collection_name}/{out_dir}'
+            page_number_links = [{ 'page_number': page_number, 'url': f'{out_dir}/{page_number}' } for page_number in page_numbers]
+        else:
+            page_number_links = [{ 'page_number': page_number, 'url': f'/{collection_name}/{page_number}' } for page_number in page_numbers]
 
         prev_page_num = page_num - 1 if page_num > 1 else None
         next_page_num = page_num + 1 if page_num < total_pages else None
-
-        if out_dir:
-            out_dir = self.template_renderer.render_string(out_dir, page_items[0])
-            out_dir = f'/{collection_name}/{out_dir}'
-
-            # Construct URLs for prev_page and next_page
-            prev_page_url = f"/{out_dir}/{prev_page_num}" if prev_page_num else None
-            next_page_url = f"/{out_dir}/{next_page_num}" if next_page_num else None
-
-            page_number1 = []
-            for page_number in page_numbers:
-                page_number1.append(
-                    {
-                        'page_number': page_number,
-                        'url': f'{out_dir}/{page_number}'
-                    })
-
-        else:
-            # Construct URLs for prev_page and next_page
-            prev_page_url = f"/{collection_name}/{prev_page_num}" if prev_page_num else None
-            next_page_url = f"/{collection_name}/{next_page_num}" if next_page_num else None
-
-            page_number1 = []
-            for page_number in page_numbers:
-                page_number1.append(
-                    {
-                        'page_number': page_number,
-                        'url': f'{collection_name}/{page_number}'
-                    })
+        prev_page_url = f"/{out_dir}/{prev_page_num}" if out_dir and prev_page_num else f"/{collection_name}/{prev_page_num}" if prev_page_num else None
+        next_page_url = f"/{out_dir}/{next_page_num}" if out_dir and next_page_num else f"/{collection_name}/{next_page_num}" if next_page_num else None
 
         pagination = {
             'page_number': page_num,
-            'page_numbers': page_number1,
+            'page_numbers': page_number_links,
             'total_pages': total_pages,
             'prev_page': prev_page_url,
             'next_page': next_page_url
         }
+        return pagination
+
+    #def get_pagination_metadata(self, out_dir, page_num, collection_name, total_pages, page_numbers, page_items):
+
+    #    prev_page_num = page_num - 1 if page_num > 1 else None
+    #    next_page_num = page_num + 1 if page_num < total_pages else None
+
+    #    if out_dir:
+    #        out_dir = self.template_renderer.render_string(out_dir, page_items[0])
+    #        out_dir = f'/{collection_name}/{out_dir}'
+
+    #        # Construct URLs for prev_page and next_page
+    #        prev_page_url = f"/{out_dir}/{prev_page_num}" if prev_page_num else None
+    #        next_page_url = f"/{out_dir}/{next_page_num}" if next_page_num else None
+
+    #        page_number1 = []
+    #        for page_number in page_numbers:
+    #            page_number1.append(
+    #                {
+    #                    'page_number': page_number,
+    #                    'url': f'{out_dir}/{page_number}'
+    #                })
+
+    #    else:
+    #        # Construct URLs for prev_page and next_page
+    #        prev_page_url = f"/{collection_name}/{prev_page_num}" if prev_page_num else None
+    #        next_page_url = f"/{collection_name}/{next_page_num}" if next_page_num else None
+
+    #        page_number1 = []
+    #        for page_number in page_numbers:
+    #            page_number1.append(
+    #                {
+    #                    'page_number': page_number,
+    #                    'url': f'{collection_name}/{page_number}'
+    #                })
+
+    #    pagination = {
+    #        'page_number': page_num,
+    #        'page_numbers': page_number1,
+    #        'total_pages': total_pages,
+    #        'prev_page': prev_page_url,
+    #        'next_page': next_page_url
+    #    }
 
         return pagination
 
@@ -316,26 +353,10 @@ class Jan26Gen:
             **({alias : page_items} if page_items else {})
         }
 
-        # Extract file name from item
-        file_name = os.path.splitext(items['file_name'])[0]
-
         # Render Markdown HTML content
         html_content = self.template_renderer.render_string(items['content'], context)
-
-        if out_dir and page_items:
-            #custom output directory w jinja template support from page items?
-            out_dir = f'{self.output_dir}/{out_dir}'
-            out_dir = self.template_renderer.render_string(out_dir, page_items[0])
-        elif page_num:
-            out_dir = f'{self.output_dir}/{collection_name}/{page_num}'
-        elif file_name == 'index' and collection_name == self.content_dir:
-            out_dir = self.output_dir
-        elif file_name == 'index':
-            out_dir = f'{self.output_dir}/{collection_name}'
-        elif collection_name == self.content_dir:
-            out_dir = f'{self.output_dir}/{file_name}'
-        else:
-            out_dir = f'{self.output_dir}/{collection_name}/{file_name}'
+        
+        out_dir = self.get_output_directory(collection_name, out_dir, page_num, items, settings)
 
         final_out = f'{out_dir}/index.html'
 
@@ -351,6 +372,24 @@ class Jan26Gen:
         #import pprint
         #pprint.pprint({'content': html_content, **context})
         self.file_generator.generate(out_dir, final_out, rendered_template)
+
+    def get_output_directory(self, collection_name, out_dir, page_num, items, settings):
+        if out_dir and self.template_renderer:
+            out_dir = f'{self.output_dir}/{out_dir}'
+            out_dir = self.render_output_directory(out_dir, items)
+        elif page_num:
+            out_dir = f'{self.output_dir}/{collection_name}/{page_num}'
+        else:
+            file_name = os.path.splitext(items['file_name'])[0]
+            if file_name == 'index' and collection_name == self.content_dir:
+                out_dir = self.output_dir
+            elif file_name == 'index':
+                out_dir = f'{self.output_dir}/{collection_name}'
+            elif collection_name == self.content_dir:
+                out_dir = f'{self.output_dir}/{file_name}'
+            else:
+                out_dir = f'{self.output_dir}/{collection_name}/{file_name}'
+        return out_dir
 
     def generate_site(self):
         self.template_renderer.build_custom_filters()
