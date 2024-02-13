@@ -159,15 +159,8 @@ class Jan26Gen:
                 **markdown_data_dict, 
                 **frontmatter_data.to_dict(),
                 'layout': frontmatter_data.get('layout', self.default_layout),
-                'file_name': os.path.basename(markdown_file)
+                'base_name': os.path.basename(markdown_file)
             }
-
-            #permalink = frontmatter_data.get('out_path')
-            #if permalink:
-            #    context.update({'out_path': self.template_renderer.render_string(permalink, context_w_global_dict)})
-            #else:
-            #    context.update({'out_path': f'{os.path.splitext(markdown_file.lstrip(self.content_dir))[0].rstrip("/index")}/index.html' })
-
 
             if collection_name not in collections['collections']:
                 collections['collections'][collection_name] = []
@@ -187,22 +180,24 @@ class Jan26Gen:
 
         for collection_name, items in collections.items():
             for item in items:
-                if isinstance(item, dict) and item.get('file_name'):
+                if isinstance(item, dict) and item.get('base_name'):
+                    out_dir = item.get('out_dir')
                     if item.get('paginated'):
-                        self.render_paginated_collection(item, collection_name, collections, settings)
+                        self.render_paginated_collection(item, collection_name, collections, settings, out_dir=out_dir)
                     else:
                         page_data = {
                             'collection_name': collection_name, 
                             'collections': collections,  
                             'settings': settings, 
-                            'items': item 
+                            'items': item,
+                            'out_dir': out_dir
                         }
                         self.render_page(page_data)
     
     def remove_index(self, page_items, items):
 
         # should not include index file in the paginated items
-        return [p_item for p_item in page_items if p_item.get('file_name') != items['file_name'] ]
+        return [p_item for p_item in page_items if p_item.get('base_name') != items['base_name'] ]
 
     def generate_url(self, out_dir, items, page_items, collection_name):
         for item in page_items:
@@ -210,23 +205,10 @@ class Jan26Gen:
                 out_dir = self.render_output_directory(out_dir, page_items[0])
                 item['url'] = f'/{collection_name}/{out_dir}'
             else:
-                file_name = os.path.splitext(item['file_name'])[0]
-                item['url'] = f'/{collection_name}/{file_name}'
+                base_name = os.path.splitext(item['base_name'])[0]
+                item['url'] = f'/{collection_name}/{base_name}'
         return page_items
 
-    #def generate_url(self, out_dir, items, page_items, collection_name):
-    #    for item in page_items:
-    #        if out_dir:
-    #            #custom output directory w jinja template support from page items?
-    #            # w/o file_name?
-    #            # TODO: url doesnt fit??
-    #            out_dir = self.template_renderer.render_string(out_dir, page_items[0])
-    #            item['url'] = f'/{collection_name}/{out_dir}'
-    #        else:
-    #            # Replace 'generate_url' with your logic to generate the URL
-    #            file_name = os.path.splitext(item['file_name'])[0]
-    #            item['url'] = f'/{collection_name}/{file_name}'
-    #    return page_items
 
     def render_output_directory(self, out_dir, page_item):
         if self.template_renderer:
@@ -255,51 +237,8 @@ class Jan26Gen:
         }
         return pagination
 
-    #def get_pagination_metadata(self, out_dir, page_num, collection_name, total_pages, page_numbers, page_items):
 
-    #    prev_page_num = page_num - 1 if page_num > 1 else None
-    #    next_page_num = page_num + 1 if page_num < total_pages else None
-
-    #    if out_dir:
-    #        out_dir = self.template_renderer.render_string(out_dir, page_items[0])
-    #        out_dir = f'/{collection_name}/{out_dir}'
-
-    #        # Construct URLs for prev_page and next_page
-    #        prev_page_url = f"/{out_dir}/{prev_page_num}" if prev_page_num else None
-    #        next_page_url = f"/{out_dir}/{next_page_num}" if next_page_num else None
-
-    #        page_number1 = []
-    #        for page_number in page_numbers:
-    #            page_number1.append(
-    #                {
-    #                    'page_number': page_number,
-    #                    'url': f'{out_dir}/{page_number}'
-    #                })
-
-    #    else:
-    #        # Construct URLs for prev_page and next_page
-    #        prev_page_url = f"/{collection_name}/{prev_page_num}" if prev_page_num else None
-    #        next_page_url = f"/{collection_name}/{next_page_num}" if next_page_num else None
-
-    #        page_number1 = []
-    #        for page_number in page_numbers:
-    #            page_number1.append(
-    #                {
-    #                    'page_number': page_number,
-    #                    'url': f'{collection_name}/{page_number}'
-    #                })
-
-    #    pagination = {
-    #        'page_number': page_num,
-    #        'page_numbers': page_number1,
-    #        'total_pages': total_pages,
-    #        'prev_page': prev_page_url,
-    #        'next_page': next_page_url
-    #    }
-
-        return pagination
-
-    def render_paginated_collection(self, items, collection_name, collections, settings):
+    def render_paginated_collection(self, items, collection_name, collections, settings, out_dir=None):
         paginated = items.get('paginated', {})
 
         paginated_items = self.remove_index(collections.get(paginated.get('items'), []), items)
@@ -308,7 +247,6 @@ class Jan26Gen:
         paginated_list = paginate(paginated_items, page_size)
         total_pages = len(paginated_list)
         page_numbers= list(range(1, total_pages + 1))
-        out_dir = items.get('out_dir') #custom output directory?
 
         for page_num, page_items in enumerate(paginated_list, start=1):
             #print(f"Page {page_num}: {page_items}")
@@ -326,7 +264,8 @@ class Jan26Gen:
                 'items': items,
                 'alias': alias,
                 'page_items': page_items_w_urls, 
-                'pagination': pagination_metadata
+                'pagination': pagination_metadata,
+                'out_dir': out_dir
             }
             self.render_page(page_data, page_num)
 
@@ -343,7 +282,7 @@ class Jan26Gen:
         alias = page_data.get('alias')
 
         #custom output directory?
-        out_dir = items.get('out_dir')
+        out_dir = page_data.get('out_dir')
 
         context = {
             **items,
@@ -380,15 +319,15 @@ class Jan26Gen:
         elif page_num:
             out_dir = f'{self.output_dir}/{collection_name}/{page_num}'
         else:
-            file_name = os.path.splitext(items['file_name'])[0]
-            if file_name == 'index' and collection_name == self.content_dir:
+            base_name = os.path.splitext(items['base_name'])[0]
+            if base_name == 'index' and collection_name == self.content_dir:
                 out_dir = self.output_dir
-            elif file_name == 'index':
+            elif base_name == 'index':
                 out_dir = f'{self.output_dir}/{collection_name}'
             elif collection_name == self.content_dir:
-                out_dir = f'{self.output_dir}/{file_name}'
+                out_dir = f'{self.output_dir}/{base_name}'
             else:
-                out_dir = f'{self.output_dir}/{collection_name}/{file_name}'
+                out_dir = f'{self.output_dir}/{collection_name}/{base_name}'
         return out_dir
 
     def generate_site(self):
