@@ -270,6 +270,9 @@ class Jan26Gen:
         page_items = page_data.get('page_items', {})
         alias = page_data.get('alias')
 
+        #custom output directory?
+        out_dir = items.get('out_dir')
+
         context = {
             **items,
             'collections': collections, 
@@ -284,7 +287,11 @@ class Jan26Gen:
         # Render Markdown HTML content
         html_content = self.template_renderer.render_string(items['content'], context)
 
-        if page_num:
+        if out_dir and page_items:
+            #custom output directory w jinja template support from page items?
+            out_dir = f'{self.output_dir}/{out_dir}'
+            out_dir = self.template_renderer.render_string(out_dir, page_items[0])
+        elif page_num:
             out_dir = f'{self.output_dir}/{collection_name}/{page_num}'
         elif file_name == 'index' and collection_name == self.content_dir:
             out_dir = self.output_dir

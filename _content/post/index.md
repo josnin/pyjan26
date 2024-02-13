@@ -5,6 +5,7 @@ paginated:
   size: 1
   items: post
   alias: blogPosts
+out_dir: 'new/{{title}}'
 ---
 
 # Index post
