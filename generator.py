@@ -217,8 +217,7 @@ class Jan26Gen:
         page_size = paginated.get('size', settings.get('PAGE_SIZE') )
         alias = paginated.get('alias', f'paginated{collection_name.title()}')
         paginated_list = paginate(paginated_items, page_size)
-
-
+        total_pages = len(paginated_list)
 
         for page_num, page_items in enumerate(paginated_list, start=1):
             #print(f"Page {page_num}: {page_items}")
@@ -226,16 +225,28 @@ class Jan26Gen:
             # Generate URLs for each page_item
             page_items = self.generate_url(page_items, collection_name)
 
+            prev_page_num = page_num - 1 if page_num > 1 else None
+            next_page_num = page_num + 1 if page_num < total_pages else None
+
+            # Construct URLs for prev_page and next_page
+            prev_page_url = f"/{collection_name}/{prev_page_num}" if prev_page_num else None
+            next_page_url = f"/{collection_name}/{next_page_num}" if next_page_num else None
+
+            pagination = {
+                'page_num': page_num,
+                'total_pages': total_pages,
+                'prev_page': prev_page_url,
+                'next_page': next_page_url
+            }
+
             page_data = {
                 'collection_name': collection_name,
                 'collections': collections,
                 'settings': settings,
                 'items': items,
-                'page_items': page_items, 
                 'alias': alias,
-                'prev_page': None,
-                'next_page': None,
-                'page_num': page_num
+                'page_items': page_items, 
+                'pagination': pagination
             }
             self.render_page(page_data, page_num)
 
@@ -245,6 +256,9 @@ class Jan26Gen:
         items = page_data.get('items', {})
         settings = page_data.get('settings', {})
         collection_name = page_data.get('collection_name', '')
+        pagination = page_data.get('pagination', {})
+
+        #should we mov under pagination dict?
         page_items = page_data.get('page_items', {})
         alias = page_data.get('alias')
 
@@ -252,6 +266,7 @@ class Jan26Gen:
             **items,
             'collections': collections, 
             'settings': settings,
+            'pagination': pagination,
             **({alias : page_items} if page_items else {})
         }
         #import pprint

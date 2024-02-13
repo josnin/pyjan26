@@ -14,6 +14,9 @@ paginated:
     <span>{{ page.url }}</span>
 {% endfor %}
 
+{{ pagination.prev_page }}
+{{ pagination.next_page }}
+
 
 
 
