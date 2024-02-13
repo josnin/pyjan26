@@ -198,16 +198,34 @@ class Jan26Gen:
                             'items': item 
                         }
                         self.render_page(page_data)
+    
+    def remove_index(self, page_items, items):
+        # should not include index file in the paginated items
+        return [p_item for p_item in page_items if p_item['file_name'] != items['file_name'] ]
+
+    def generate_url(self, page_items, collection_name):
+        for item in page_items:
+            # Replace 'generate_url' with your logic to generate the URL
+            file_name = os.path.splitext(item['file_name'])[0]
+            item['url'] = f'/{collection_name}/{file_name}'
+        return page_items
 
     def render_paginated_collection(self, items, collection_name, collections, settings):
         paginated = items.get('paginated', {})
-        paginated_items = collections.get(paginated.get('items'), [])
-        page_size = paginated.get('size', settings.PAGE_SIZE)
+
+        paginated_items = self.remove_index(collections.get(paginated.get('items'), []), items)
+        page_size = paginated.get('size', settings.get('PAGE_SIZE') )
         alias = paginated.get('alias', f'paginated{collection_name.title()}')
         paginated_list = paginate(paginated_items, page_size)
 
+
+
         for page_num, page_items in enumerate(paginated_list, start=1):
             #print(f"Page {page_num}: {page_items}")
+
+            # Generate URLs for each page_item
+            page_items = self.generate_url(page_items, collection_name)
+
             page_data = {
                 'collection_name': collection_name,
                 'collections': collections,

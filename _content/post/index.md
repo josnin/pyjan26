@@ -2,7 +2,7 @@
 layout: page.html
 title: Index Post
 paginated:
-  size: 2
+  size: 1
   items: post
   alias: blogPosts
 ---
