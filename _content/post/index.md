@@ -1,18 +1,16 @@
 ---
 layout: page.html
 title: Index Post
-paginated:
-  size: 1
-  items: post
-  alias: blogPosts
-out_dir: 'new/{{title}}'
 ---
 
 # Index post
 
+{% for page in collections.collection2 %}
+    <span>{{ page.title }}</span>
+{% endfor %}
 
 {% for page in blogPosts %}
-    <span>{{ page.url }}</span>
+    <span>{{ page.title }}</span>
 {% endfor %}
 
 
@@ -21,7 +19,7 @@ out_dir: 'new/{{title}}'
 {% endif %}
 
 {% for page_num in pagination.page_numbers %}
-  <a href="/post/{{ page_num }}">{{ page_num }}</a>
+  <a href="{{ page_num.url }}">{{ page_num.page_number }}</a>
 {% endfor %}
 
 {% if pagination.next_page %}

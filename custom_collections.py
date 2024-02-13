@@ -5,7 +5,7 @@ def custom_collection_function1(collections):
 def custom_collection_function2(collections):
     #print(collections)
     # Logic to generate collection 2
-    return {'collection2': [{'metadata': {}, 'content': 'Collections 2'}, {'metadata': {}, 'content': 'Collections 2'}]}
+    return {'collection2': [{'metadata': {}, 'title': 'Custom Collections 1'}, {'metadata': {}, 'title': 'Custom Collections 2'}]}
 
 
 #def paginated_collections(collections):
