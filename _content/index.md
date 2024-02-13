@@ -9,5 +9,6 @@ asdfsdfsdf
 
 {{ settings.METADATA }} << metadata??
 
+
 This is the content of the first blog post. 
 

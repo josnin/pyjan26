@@ -210,6 +210,23 @@ class Jan26Gen:
             item['url'] = f'/{collection_name}/{file_name}'
         return page_items
 
+    def generate_pagination_metadata(self, page_num, collection_name, total_pages):
+        prev_page_num = page_num - 1 if page_num > 1 else None
+        next_page_num = page_num + 1 if page_num < total_pages else None
+
+        # Construct URLs for prev_page and next_page
+        prev_page_url = f"/{collection_name}/{prev_page_num}" if prev_page_num else None
+        next_page_url = f"/{collection_name}/{next_page_num}" if next_page_num else None
+
+        pagination = {
+            'page_num': page_num,
+            'total_pages': total_pages,
+            'prev_page': prev_page_url,
+            'next_page': next_page_url
+        }
+
+        return pagination
+
     def render_paginated_collection(self, items, collection_name, collections, settings):
         paginated = items.get('paginated', {})
 
@@ -223,21 +240,10 @@ class Jan26Gen:
             #print(f"Page {page_num}: {page_items}")
 
             # Generate URLs for each page_item
-            page_items = self.generate_url(page_items, collection_name)
+            page_items_w_urls = self.generate_url(page_items, collection_name)
 
-            prev_page_num = page_num - 1 if page_num > 1 else None
-            next_page_num = page_num + 1 if page_num < total_pages else None
+            pagination_metadata = self.generate_pagination_metadata(page_num, collection_name, total_pages)
 
-            # Construct URLs for prev_page and next_page
-            prev_page_url = f"/{collection_name}/{prev_page_num}" if prev_page_num else None
-            next_page_url = f"/{collection_name}/{next_page_num}" if next_page_num else None
-
-            pagination = {
-                'page_num': page_num,
-                'total_pages': total_pages,
-                'prev_page': prev_page_url,
-                'next_page': next_page_url
-            }
 
             page_data = {
                 'collection_name': collection_name,
@@ -245,8 +251,8 @@ class Jan26Gen:
                 'settings': settings,
                 'items': items,
                 'alias': alias,
-                'page_items': page_items, 
-                'pagination': pagination
+                'page_items': page_items_w_urls, 
+                'pagination': pagination_metadata
             }
             self.render_page(page_data, page_num)
 
@@ -269,9 +275,6 @@ class Jan26Gen:
             'pagination': pagination,
             **({alias : page_items} if page_items else {})
         }
-        #import pprint
-        #pprint.pprint(context)
-
 
         # Extract file name from item
         file_name = os.path.splitext(items['file_name'])[0]
@@ -295,7 +298,11 @@ class Jan26Gen:
 
         rendered_template = self.template_renderer.render(
             page_data['items']['layout'], 
-            {'content': html_content, 'collections': collections, 'settings': settings}
+            {'content': html_content, 
+                'collections': collections, 
+                'settings': settings, 
+                'pagination': pagination
+                }
         )
         #import pprint
         #pprint.pprint({'content': html_content, **context})
