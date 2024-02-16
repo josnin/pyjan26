@@ -1,4 +1,5 @@
 import os
+import shutil
 import json
 import glob
 #import markdown2
@@ -10,6 +11,29 @@ import settings
 
 # Get only variables from settings module
 settings_variables = {key: value for key, value in settings.__dict__.items() if not key.startswith('__')}
+
+def copy_static_files(static_paths, output_directory):
+    """
+    Copy static files specified in static_paths to the output_directory.
+    
+    Parameters:
+        static_paths (list): A list of paths to static files or directories.
+        output_directory (str): The directory where static files will be copied.
+    """
+    #TODO: use wild cards??  ex. */robots.txt ?
+    for path in static_paths:
+        source_path = os.path.join(os.getcwd(), path)
+        destination_path = os.path.join(output_directory, path)
+        print(f'STATIC FILES: source_path: {source_path}')
+        print(f'STATIC FILES: destination_path: {destination_path}')
+        
+        if os.path.isfile(source_path):
+            os.makedirs(destination_path, exist_ok=True)
+            shutil.copy(source_path, destination_path)
+        elif os.path.isdir(source_path):
+            if os.path.exists(destination_path):
+                shutil.rmtree(destination_path)  # Delete existing destination directory
+            shutil.copytree(source_path, destination_path)
 
 
 def paginate(collection, page_size):
@@ -106,12 +130,12 @@ class FileGenerator:
     def generate(self, out_dir, final_path, rendered_template):
 
         os.makedirs(out_dir, exist_ok=True)
-        print('makedirs', out_dir)
+        print('HTML: makedirs', out_dir)
 
         with open(final_path, 'w', encoding='utf-8') as f:
             f.write(rendered_template)
 
-        print(f'write_to_file {final_path}')
+        print(f'HTML: write_to_file {final_path}')
 
     def get_markdown_files(self, content_dir):
         return glob.glob(os.path.join(content_dir, "**/*.md"), recursive=True)
@@ -334,6 +358,8 @@ class Jan26Gen:
         self.template_renderer.build_custom_filters()
         collections = self.build_collections()
         self.render_collections(collections)
+        
+        copy_static_files(settings.STATIC_PATHS, self.output_dir)
 
 
 if __name__ == '__main__':

@@ -12,8 +12,8 @@ DEFAULT_LAYOUT = 'base.html'
 
 # Copy Static files
 STATIC_PATHS = [
-    "images",
-    "*/robots.txt"
+    "images/img3", #whole directory
+    "assets/robots.txt" #specific file
 ]
 
 PAGE_SIZE = 10
