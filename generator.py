@@ -24,8 +24,10 @@ def copy_static_files(static_paths, output_directory):
     for path in static_paths:
         source_path = os.path.join(os.getcwd(), path)
         destination_path = os.path.join(output_directory, path)
-        print(f'STATIC FILES: source_path: {source_path}')
-        print(f'STATIC FILES: destination_path: {destination_path}')
+
+        if settings.DEBUG:
+            print(f'STATIC FILES: source_path: {source_path}')
+            print(f'STATIC FILES: destination_path: {destination_path}')
         
         if os.path.isfile(source_path):
             os.makedirs(destination_path, exist_ok=True)
@@ -130,12 +132,13 @@ class FileGenerator:
     def generate(self, out_dir, final_path, rendered_template):
 
         os.makedirs(out_dir, exist_ok=True)
-        print('HTML: makedirs', out_dir)
 
         with open(final_path, 'w', encoding='utf-8') as f:
             f.write(rendered_template)
 
-        print(f'HTML: write_to_file {final_path}')
+        if settings.DEBUG:
+            print('FILE GENERATOR: makedirs', out_dir)
+            print(f'FILE GENERATOR: write_to_file {final_path}')
 
     def get_markdown_files(self, content_dir):
         return glob.glob(os.path.join(content_dir, "**/*.md"), recursive=True)
@@ -200,7 +203,7 @@ class Jan26Gen:
 
     def render_collections(self, objs):
         collections = objs.get('collections', {})
-        settings = objs.get('settings', {})
+        settings2 = objs.get('settings', {})
 
         for collection_name, items in collections.items():
             for item in items:
@@ -212,7 +215,7 @@ class Jan26Gen:
                         page_data = {
                             'collection_name': collection_name, 
                             'collections': collections,  
-                            'settings': settings, 
+                            'settings': settings2, 
                             'items': item,
                             'out_dir': out_dir
                         }
@@ -226,12 +229,17 @@ class Jan26Gen:
     def generate_url(self, out_dir, items, page_items, collection_name):
         for item in page_items:
             if out_dir:
-                out_dir = self.render_output_directory(out_dir, page_items[0])
+                out_dir = self.render_output_directory(out_dir, item)
                 item['url'] = f'/{collection_name}/{out_dir}'
             else:
                 base_name = os.path.splitext(item['base_name'])[0]
                 item['url'] = f'/{collection_name}/{base_name}'
-        return page_items
+
+            if settings.DEBUG:
+                print(f'GENERATE_URL: item {item}')
+                print(f'GENERATE_URL: out_dir {out_dir}')
+                print(f'GENERATE_URL: item["url"] {item["url"]}')
+        return page_items, out_dir
 
 
     def render_output_directory(self, out_dir, page_item):
@@ -262,11 +270,11 @@ class Jan26Gen:
         return pagination
 
 
-    def render_paginated_collection(self, items, collection_name, collections, settings, out_dir=None):
+    def render_paginated_collection(self, items, collection_name, collections, settings2, out_dir=None):
         paginated = items.get('paginated', {})
 
         paginated_items = self.remove_index(collections.get(paginated.get('items'), []), items)
-        page_size = paginated.get('size', settings.get('PAGE_SIZE') )
+        page_size = paginated.get('size', settings.PAGE_SIZE)
         alias = paginated.get('alias', f'paginated{collection_name.title()}')
         paginated_list = paginate(paginated_items, page_size)
         total_pages = len(paginated_list)
@@ -276,7 +284,7 @@ class Jan26Gen:
             #print(f"Page {page_num}: {page_items}")
 
             # Generate URLs for each page_item
-            page_items_w_urls = self.generate_url(out_dir, items, page_items, collection_name)
+            page_items_w_urls, out_dir = self.generate_url(out_dir, items, page_items, collection_name)
 
             pagination_metadata = self.get_pagination_metadata(out_dir, page_num, collection_name, total_pages, page_numbers, page_items)
 
@@ -284,7 +292,7 @@ class Jan26Gen:
             page_data = {
                 'collection_name': collection_name,
                 'collections': collections,
-                'settings': settings,
+                'settings': settings2,
                 'items': items,
                 'alias': alias,
                 'page_items': page_items_w_urls, 
@@ -297,7 +305,7 @@ class Jan26Gen:
     def render_page(self, page_data, page_num=None):
         collections = page_data.get('collections', {})
         items = page_data.get('items', {})
-        settings = page_data.get('settings', {})
+        settings2 = page_data.get('settings', {})
         collection_name = page_data.get('collection_name', '')
         pagination = page_data.get('pagination', {})
 
@@ -308,10 +316,14 @@ class Jan26Gen:
         #custom output directory?
         out_dir = page_data.get('out_dir')
 
+        if settings.DEBUG:
+            if out_dir: print(f'RENDER_PAGE: custom out_dir {out_dir}')
+
+
         context = {
             **items,
             'collections': collections, 
-            'settings': settings,
+            'settings': settings2,
             'pagination': pagination,
             **({alias : page_items} if page_items else {})
         }
@@ -319,7 +331,8 @@ class Jan26Gen:
         # Render Markdown HTML content
         html_content = self.template_renderer.render_string(items['content'], context)
         
-        out_dir = self.get_output_directory(collection_name, out_dir, page_num, items, settings)
+        out_dir = self.get_output_directory(collection_name, out_dir, page_num, items, settings2)
+
 
         final_out = f'{out_dir}/index.html'
 
@@ -328,7 +341,7 @@ class Jan26Gen:
             page_data['items']['layout'], 
             {'content': html_content, 
                 'collections': collections, 
-                'settings': settings, 
+                'settings': settings2, 
                 'pagination': pagination
                 }
         )
@@ -371,6 +384,6 @@ if __name__ == '__main__':
     gen = Jan26Gen()
     if custom_filters_fn: gen.add_filters(custom_filters_fn)
     if custom_collections_fn: gen.add_collections(custom_collections_fn)
-    print(gen.generate_site())
+    gen.generate_site()
 
 

@@ -1,4 +1,7 @@
 
+# Debugger
+DEBUG = False
+
 # Input directory / file
 TEMPLATE_DIR = '_templates'
 CONTENT_DIR = '_content'
