@@ -141,8 +141,8 @@ class FileGenerator:
             print('FILE GENERATOR: makedirs', out_dir)
             print(f'FILE GENERATOR: write_to_file {final_path}')
 
-    def get_markdown_files(self, content_dir):
-        return glob.glob(os.path.join(content_dir, "**/*.md"), recursive=True)
+def get_markdown_files(content_dir):
+    return glob.glob(os.path.join(content_dir, "**/*.md"), recursive=True)
 
 def render_string(content, context):
     template_renderer = TemplateRenderer(settings.TEMPLATE_DIR)
@@ -153,6 +153,10 @@ def render_template(template_name, context):
     template_renderer = TemplateRenderer(settings.TEMPLATE_DIR)
     results = template_renderer.render(template_name, context)
     return results
+
+def generate_file(out_dir, final_out, rendered_template):
+    file_generator = FileGenerator()
+    return file_generator.generate(out_dir, final_out, rendered_template)
 
 def get_output_directory(collection_name, out_dir, page_num, items):
 
@@ -177,7 +181,6 @@ def get_output_directory(collection_name, out_dir, page_num, items):
 
 def render_page(page_data, page_num=None):
     template_renderer = TemplateRenderer(settings.TEMPLATE_DIR)    
-    file_generator = FileGenerator()
 
     collections = page_data.get('collections', {})
     items = page_data.get('items', {})
@@ -223,7 +226,8 @@ def render_page(page_data, page_num=None):
     )
     #import pprint
     #pprint.pprint({'content': html_content, **context})
-    file_generator.generate(out_dir, final_out, rendered_template)
+    generate_file(out_dir, final_out, rendered_template)
+
 
 class Jan26Gen:
     def __init__(self):
@@ -234,7 +238,6 @@ class Jan26Gen:
 
         self.content_parser = ContentParser()
         self.template_renderer = TemplateRenderer(self.template_dir)
-        self.file_generator = FileGenerator()
         self.custom_collections = []
 
     def add_filters(self, custom_filters):
@@ -256,7 +259,7 @@ class Jan26Gen:
         return collections
 
     def build_collections(self):
-        markdown_files = self.file_generator.get_markdown_files(self.content_dir)
+        markdown_files = get_markdown_files(self.content_dir)
         collections = { 'collections': {} }
 
         for markdown_file in markdown_files:
@@ -292,7 +295,7 @@ class Jan26Gen:
                 if isinstance(item, dict) and item.get('base_name'):
                     out_dir = item.get('out_dir')
                     for pre_condition, custom_page_fn in settings.CUSTOM_PAGE.items():
-                        if item.get(pre_condition) and item.get(pre_condition) == True:
+                        if item.get(pre_condition):
                             result = custom_page_fn(item, collection_name, collections, settings, out_dir=out_dir)
                             skip_next = result.get('skip_next')
                             
