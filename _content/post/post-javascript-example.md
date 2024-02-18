@@ -2,6 +2,7 @@
 layout: page.html
 title: Post 1 page
 tags: ["vue", "react"]
+jump: True
 split_by:
   items: collection2
   alias: blogPosts
