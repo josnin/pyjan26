@@ -2,8 +2,7 @@
 layout: page.html
 title: Post 1 page
 tags: ["vue", "react"]
-paginated:
-  size: 1
+split_by:
   items: collection2
   alias: blogPosts
 out_dir: 'new/{{ title.replace(" ", "-") }}'

@@ -1,6 +1,7 @@
+import custom_pages
 
 # Debugger
-DEBUG = False
+DEBUG = True
 
 # Input directory / file
 TEMPLATE_DIR = '_templates'
@@ -20,6 +21,10 @@ STATIC_PATHS = [
 ]
 
 PAGE_SIZE = 10
+
+CUSTOM_PAGE = {
+  'jump': custom_pages.custom_page1
+}
 
 
 METADATA = {

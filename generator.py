@@ -90,6 +90,7 @@ def get_custom_filters_fn():
     
     return res
 
+
 class ContentParser:
 
     def load_markdown_data(self, md_json_path):
@@ -143,6 +144,86 @@ class FileGenerator:
     def get_markdown_files(self, content_dir):
         return glob.glob(os.path.join(content_dir, "**/*.md"), recursive=True)
 
+def render_string(content, context):
+    template_renderer = TemplateRenderer(settings.TEMPLATE_DIR)
+    results = template_renderer.render_string(content, context)
+    return results
+
+def render_template(template_name, context):
+    template_renderer = TemplateRenderer(settings.TEMPLATE_DIR)
+    results = template_renderer.render(template_name, context)
+    return results
+
+def get_output_directory(collection_name, out_dir, page_num, items):
+
+    if out_dir:
+        out_dir = f'{settings.OUTPUT_DIR}/{out_dir}'
+        #template_rendererender = TemplateRenderer(settings.TEMPLATE_DIR)
+        #out_dir = template_renderer.render_string(out_dir, items)
+        out_dir = render_string(out_dir, items)
+    elif page_num:
+        out_dir = f'{settings.OUTPUT_DIR}/{collection_name}/{page_num}'
+    else:
+        base_name = os.path.splitext(items['base_name'])[0]
+        if base_name == 'index' and collection_name == settings.CONTENT_DIR:
+            out_dir = settings.OUTPUT_DIR
+        elif base_name == 'index':
+            out_dir = f'{settings.OUTPUT_DIR}/{collection_name}'
+        elif collection_name == settings.CONTENT_DIR:
+            out_dir = f'{settings.OUTPUT_DIR}/{base_name}'
+        else:
+            out_dir = f'{settings.OUTPUT_DIR}/{collection_name}/{base_name}'
+    return out_dir
+
+def render_page(page_data, page_num=None):
+    template_renderer = TemplateRenderer(settings.TEMPLATE_DIR)    
+    file_generator = FileGenerator()
+
+    collections = page_data.get('collections', {})
+    items = page_data.get('items', {})
+    settings2 = page_data.get('settings', {})
+    collection_name = page_data.get('collection_name', '')
+    pagination = page_data.get('pagination', {})
+
+    #should we mov under pagination dict?
+    page_items = page_data.get('page_items', {})
+    alias = page_data.get('alias')
+
+    #custom output directory?
+    out_dir = page_data.get('out_dir')
+
+    if settings.DEBUG:
+        if out_dir: print(f'RENDER_PAGE: custom out_dir {out_dir}')
+
+
+    context = {
+        **items,
+        'collections': collections, 
+        'settings': settings2,
+        'pagination': pagination,
+        **({alias : page_items} if page_items else {})
+    }
+
+    # Render Markdown HTML content
+    html_content = render_string(items['content'], context)
+    
+    out_dir = get_output_directory(collection_name, out_dir, page_num, items)
+
+
+    final_out = f'{out_dir}/index.html'
+
+
+    rendered_template = render_template(
+        page_data['items']['layout'], 
+        {'content': html_content, 
+            'collections': collections, 
+            'settings': settings2, 
+            'pagination': pagination
+            }
+    )
+    #import pprint
+    #pprint.pprint({'content': html_content, **context})
+    file_generator.generate(out_dir, final_out, rendered_template)
 
 class Jan26Gen:
     def __init__(self):
@@ -204,32 +285,41 @@ class Jan26Gen:
     def render_collections(self, objs):
         collections = objs.get('collections', {})
         settings2 = objs.get('settings', {})
+        skip_next = None
 
         for collection_name, items in collections.items():
             for item in items:
                 if isinstance(item, dict) and item.get('base_name'):
                     out_dir = item.get('out_dir')
-                    if item.get('paginated'):
-                        self.render_paginated_collection(item, collection_name, collections, settings, out_dir=out_dir)
-                    else:
-                        page_data = {
-                            'collection_name': collection_name, 
-                            'collections': collections,  
-                            'settings': settings2, 
-                            'items': item,
-                            'out_dir': out_dir
-                        }
-                        self.render_page(page_data)
+                    for pre_condition, custom_page_fn in settings.CUSTOM_PAGE.items():
+                        if item.get(pre_condition) and item.get(pre_condition) == True:
+                            result = custom_page_fn(item, collection_name, collections, settings, out_dir=out_dir)
+                            skip_next = result.get('skip_next')
+                            
+
+                    #print('still goes here??')
+                    # skip other condition w/in the same page
+                    if skip_next in (None, False):
+                        if item.get('paginated'):
+                            self.render_paginated_collection(item, collection_name, collections, settings, out_dir=out_dir)
+                        else:
+                            page_data = {
+                                'collection_name': collection_name, 
+                                'collections': collections,  
+                                'settings': settings2, 
+                                'items': item,
+                                'out_dir': out_dir
+                            }
+                            render_page(page_data)
     
     def remove_index(self, page_items, items):
-
         # should not include index file in the paginated items
         return [p_item for p_item in page_items if p_item.get('base_name') != items['base_name'] ]
 
     def generate_url(self, out_dir, items, page_items, collection_name):
         for item in page_items:
             if out_dir:
-                out_dir = self.render_output_directory(out_dir, item)
+                out_dir =  render_string(out_dir, item)
                 item['url'] = f'/{collection_name}/{out_dir}'
             else:
                 base_name = os.path.splitext(item['base_name'])[0]
@@ -241,15 +331,10 @@ class Jan26Gen:
                 print(f'GENERATE_URL: item["url"] {item["url"]}')
         return page_items, out_dir
 
-
-    def render_output_directory(self, out_dir, page_item):
-        if self.template_renderer:
-            return self.template_renderer.render_string(out_dir, page_item)
-        return out_dir
-
     def get_pagination_metadata(self, out_dir, page_num, collection_name, total_pages, page_numbers, page_items):
         if out_dir:
-            out_dir = self.render_output_directory(out_dir, page_items[0])
+            out_dir =  render_string(out_dir, page_item[0])
+            #out_dir = self.render_output_directory(out_dir, page_items[0])
             out_dir = f'/{collection_name}/{out_dir}'
             page_number_links = [{ 'page_number': page_number, 'url': f'{out_dir}/{page_number}' } for page_number in page_numbers]
         else:
@@ -268,7 +353,6 @@ class Jan26Gen:
             'next_page': next_page_url
         }
         return pagination
-
 
     def render_paginated_collection(self, items, collection_name, collections, settings2, out_dir=None):
         paginated = items.get('paginated', {})
@@ -299,73 +383,11 @@ class Jan26Gen:
                 'pagination': pagination_metadata,
                 'out_dir': out_dir
             }
-            self.render_page(page_data, page_num)
 
+            if settings.DEBUG:
+                print(f'RENDER_PAGINATED: page_data: {page_data}')
 
-    def render_page(self, page_data, page_num=None):
-        collections = page_data.get('collections', {})
-        items = page_data.get('items', {})
-        settings2 = page_data.get('settings', {})
-        collection_name = page_data.get('collection_name', '')
-        pagination = page_data.get('pagination', {})
-
-        #should we mov under pagination dict?
-        page_items = page_data.get('page_items', {})
-        alias = page_data.get('alias')
-
-        #custom output directory?
-        out_dir = page_data.get('out_dir')
-
-        if settings.DEBUG:
-            if out_dir: print(f'RENDER_PAGE: custom out_dir {out_dir}')
-
-
-        context = {
-            **items,
-            'collections': collections, 
-            'settings': settings2,
-            'pagination': pagination,
-            **({alias : page_items} if page_items else {})
-        }
-
-        # Render Markdown HTML content
-        html_content = self.template_renderer.render_string(items['content'], context)
-        
-        out_dir = self.get_output_directory(collection_name, out_dir, page_num, items, settings2)
-
-
-        final_out = f'{out_dir}/index.html'
-
-
-        rendered_template = self.template_renderer.render(
-            page_data['items']['layout'], 
-            {'content': html_content, 
-                'collections': collections, 
-                'settings': settings2, 
-                'pagination': pagination
-                }
-        )
-        #import pprint
-        #pprint.pprint({'content': html_content, **context})
-        self.file_generator.generate(out_dir, final_out, rendered_template)
-
-    def get_output_directory(self, collection_name, out_dir, page_num, items, settings):
-        if out_dir and self.template_renderer:
-            out_dir = f'{self.output_dir}/{out_dir}'
-            out_dir = self.render_output_directory(out_dir, items)
-        elif page_num:
-            out_dir = f'{self.output_dir}/{collection_name}/{page_num}'
-        else:
-            base_name = os.path.splitext(items['base_name'])[0]
-            if base_name == 'index' and collection_name == self.content_dir:
-                out_dir = self.output_dir
-            elif base_name == 'index':
-                out_dir = f'{self.output_dir}/{collection_name}'
-            elif collection_name == self.content_dir:
-                out_dir = f'{self.output_dir}/{base_name}'
-            else:
-                out_dir = f'{self.output_dir}/{collection_name}/{base_name}'
-        return out_dir
+            render_page(page_data, page_num)
 
     def generate_site(self):
         self.template_renderer.build_custom_filters()
