@@ -1,13 +1,15 @@
-from generator import render_page, render_string
+#from .generator import render_page, render_string # typing: ignore
 
 def custom_page1(*args, **kwargs):
     print('calling custom page1')
+    
 
     item, collection_name, collections, settings = args
     out_dir = kwargs.get('out_dir')
 
     # render jinja variable
-    out_dir =  render_string(out_dir, item)
+    if out_dir:
+        out_dir =  render_string(out_dir, item)
 
     page_data = {
         'collection_name': collection_name,

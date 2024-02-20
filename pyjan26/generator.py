@@ -10,6 +10,7 @@ from typing import List, Dict, Any, Union, Callable, Tuple
 
 import settings
 
+
 # Get only variables from settings module
 settings_variables = {key: value for key, value in settings.__dict__.items() if not key.startswith('__')}
 
