@@ -10,6 +10,7 @@ mccabe==0.7.0
 mypy==1.8.0
 mypy-extensions==1.0.0
 platformdirs==4.2.0
+pyjan26 @ file:///home/jose/Documents/pyjan26
 pylint==3.0.3
 python-frontmatter==1.1.0
 PyYAML==6.0.1
