@@ -1,12 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='pyjan26',
     version='0.1',
-    packages=['pyjan26'],
+    packages=find_packages(),
     install_requires=[
-        'markdown2',
-        'Jinja2',
+        'Jinja2>=3.1.3',
+        'jinja2_markdown>=0.0.3'
     ],
 )
-

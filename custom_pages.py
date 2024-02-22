@@ -1,7 +1,9 @@
-#from .generator import render_page, render_string # typing: ignore
 
+from pyjan26.registry import register_custom_page
+from pyjan26.core import render_page, render_string
+
+print('user define custom page? here')
 def custom_page1(*args, **kwargs):
-    print('calling custom page1')
     
 
     item, collection_name, collections, settings = args
@@ -47,3 +49,6 @@ def custom_page1(*args, **kwargs):
 #
 #        self.render_page(page_data, 1)
 #
+
+
+register_custom_page('jump', custom_page1)

@@ -7,6 +7,10 @@ import frontmatter  # type: ignore
 from jinja2 import Environment, FileSystemLoader, BaseLoader
 from jinja2_markdown import MarkdownExtension  # type: ignore
 from typing import List, Dict, Any, Union, Callable, Tuple
+from pyjan26.registry import (
+    CUSTOM_PAGE_REGISTRY, CUSTOM_COLLECTION_REGISTRY, 
+    CUSTOM_FILTER_REGISTRY
+)
 
 import settings
 
@@ -58,37 +62,6 @@ def paginate(collection: List[Any], page_size: int) -> List[List[Any]]:
 def load_json_data(json_path: str) -> Dict[str, Any]:
     return json.load(open(json_path, 'r', encoding='utf-8')) if os.path.exists(json_path) else {}
 
-def get_custom_collections_fn():
-    res = None
-    try:
-        import custom_collections
-
-        # Get all function names from the module
-        function_names = [name for name in dir(custom_collections) if callable(getattr(custom_collections, name))]
-
-        # Get the function objects using getattr() and pass them to add_collections
-        res = [getattr(custom_collections, name) for name in function_names]
-
-    except ImportError:
-        print("custom_collections.py file not found. No custom collections will be added.")
-
-    return res
-
-def get_custom_filters_fn():
-    res = None
-    try:
-        import custom_filters
-
-        # Get all function names from the module
-        function_names = [name for name in dir(custom_filters) if callable(getattr(custom_filters, name))]
-
-        # Get the function objects using getattr() and pass them to add_filters
-        res = [getattr(custom_filters, name) for name in function_names]
-
-    except ImportError:
-        print("custom_filters.py file not found. No custom filters will be added.")
-    
-    return res
 
 
 class ContentParser:
@@ -240,11 +213,17 @@ class Jan26Gen:
         self.template_renderer = TemplateRenderer(self.template_dir)
         self.custom_collections: List[Callable] = []
 
-    def add_filters(self, custom_filters: List[Callable]) -> None:
-        self.template_renderer.add_filters(custom_filters)
+        if CUSTOM_FILTER_REGISTRY:
+            self.template_renderer.add_filters(CUSTOM_FILTER_REGISTRY)
 
-    def add_collections(self, custom_function: List[Callable]) -> None:
-        self.custom_collections.extend(custom_function)
+        if CUSTOM_COLLECTION_REGISTRY:
+            self.custom_collections.extend(CUSTOM_COLLECTION_REGISTRY)
+
+    #def add_filters(self, custom_filters: List[Callable]) -> None:
+    #    self.template_renderer.add_filters(custom_filters)
+
+    #def add_collections(self, custom_function: List[Callable]) -> None:
+    #    self.custom_collections.extend(custom_function)
 
     def build_custom_collections(self, collections: Dict[str, Any]) -> Dict[str, Any]:
         # Build collections using custom collection functions
@@ -294,7 +273,7 @@ class Jan26Gen:
             for item in items:
                 if isinstance(item, dict) and item.get('base_name'):
                     out_dir = item.get('out_dir')
-                    for pre_condition, custom_page_fn in settings.CUSTOM_PAGE.items():
+                    for pre_condition, custom_page_fn in CUSTOM_PAGE_REGISTRY.items():
                         if item.get(pre_condition):
                             result = custom_page_fn(item, collection_name, collections, settings, out_dir=out_dir)
                             skip_next = result.get('skip_next')
@@ -400,14 +379,24 @@ class Jan26Gen:
         copy_static_files(settings.STATIC_PATHS, self.output_dir)
 
 
-if __name__ == '__main__':
+#from pyjan26.custom_pages import *
+from importlib import import_module
+custom_pages_module = os.environ.get('PYJAN26_PAGES_MODULE')
+if not custom_pages_module:
+    print("PYJAN26_PAGES_MODULE environment variable is not set")
+else:
+    custom_pages = import_module(custom_pages_module) # type: ignore
+    
 
-    custom_collections_fn = get_custom_collections_fn()
-    custom_filters_fn = get_custom_filters_fn()
+collections_module = os.environ.get('PYJAN26_COLLECTIONS_MODULE')
+if not collections_module:
+    print("PYJAN26_COLLECTIONS_MODULE environment variable is not set")
+else:
+    custom_collections = import_module(collections_module) # type: ignore
 
 
-    gen = Jan26Gen()
-    if custom_filters_fn: gen.add_filters(custom_filters_fn)
-    if custom_collections_fn: gen.add_collections(custom_collections_fn)
-    gen.generate_site()
-
+filters_module = os.environ.get('PYJAN26_FILTERS_MODULE')
+if not filters_module:
+    print("PYJAN26_FILTERS_MODULE environment variable is not set")
+else:
+    custom_filters = import_module(filters_module) # type: ignore
