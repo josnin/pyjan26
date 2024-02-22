@@ -15,10 +15,7 @@ from pyjan26.registry import (
 
 #import settings
 settings_module = os.environ.setdefault('PYJAN26_SETTINGS_MODULE', 'settings')
-if not settings_module:
-    print("PYJAN26_SETTINGS_MODULE environment variable is not set")
-else:
-    settings = import_module(settings_module) # type: ignore
+settings = import_module(settings_module) # type: ignore
 
 # Get only variables from settings module
 settings_variables = {key: value for key, value in settings.__dict__.items() if not key.startswith('__')}
