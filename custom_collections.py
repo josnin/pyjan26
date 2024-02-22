@@ -1,3 +1,5 @@
+from pyjan26.registry import register_custom_collections
+
 def custom_collection_function1(collections):
     # Logic to generate collection 1
     return {'collection1': [{'metadata': {}, 'content': 'Content 1'}, {'metadata': {}, 'content': 'Content 2'}]}
@@ -8,7 +10,7 @@ def custom_collection_function2(collections):
     return {'collection2': [{'metadata': {}, 'title': 'Custom Collections 1'}, {'metadata': {}, 'title': 'Custom Collections 2'}]}
 
 
-#def paginated_collections(collections):
-#    #print(f'paginated collections {collections}')
-#    #return {'collection3': []}
-#    return collections
+register_custom_collections([
+    custom_collection_function1,
+    custom_collection_function2
+])
