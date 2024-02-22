@@ -4,6 +4,7 @@ import json
 import glob
 #import markdown2
 import frontmatter  # type: ignore
+from importlib import import_module
 from jinja2 import Environment, FileSystemLoader, BaseLoader
 from jinja2_markdown import MarkdownExtension  # type: ignore
 from typing import List, Dict, Any, Union, Callable, Tuple
@@ -12,7 +13,12 @@ from pyjan26.registry import (
     CUSTOM_FILTER_REGISTRY
 )
 
-import settings
+#import settings
+settings_module = os.environ.setdefault('PYJAN26_SETTINGS_MODULE', 'settings')
+if not settings_module:
+    print("PYJAN26_SETTINGS_MODULE environment variable is not set")
+else:
+    settings = import_module(settings_module) # type: ignore
 
 # Get only variables from settings module
 settings_variables = {key: value for key, value in settings.__dict__.items() if not key.startswith('__')}
@@ -378,25 +384,3 @@ class Jan26Gen:
         
         copy_static_files(settings.STATIC_PATHS, self.output_dir)
 
-
-#from pyjan26.custom_pages import *
-from importlib import import_module
-custom_pages_module = os.environ.get('PYJAN26_PAGES_MODULE')
-if not custom_pages_module:
-    print("PYJAN26_PAGES_MODULE environment variable is not set")
-else:
-    custom_pages = import_module(custom_pages_module) # type: ignore
-    
-
-collections_module = os.environ.get('PYJAN26_COLLECTIONS_MODULE')
-if not collections_module:
-    print("PYJAN26_COLLECTIONS_MODULE environment variable is not set")
-else:
-    custom_collections = import_module(collections_module) # type: ignore
-
-
-filters_module = os.environ.get('PYJAN26_FILTERS_MODULE')
-if not filters_module:
-    print("PYJAN26_FILTERS_MODULE environment variable is not set")
-else:
-    custom_filters = import_module(filters_module) # type: ignore
