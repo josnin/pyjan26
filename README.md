@@ -1,15 +1,6 @@
 # PyJan26
 PyJan26 is a static site generator written in Python. It allows you to generate static websites from templates and content files, with support for pagination, custom pages, custom filters, and custom collections.
 
-## Features
-
-**Static Site Generation**: PyJan26 generates static HTML files from templates and content files, allowing you to create fast and lightweight websites.
-**Pagination**: Easily paginate your content with configurable page sizes and navigation.
-**Static Path**: Define static paths to copy static files such as CSS, images, or other assets to the output directory.
-**Custom Pages**: Create custom pages using templates and content files to tailor your website's structure and content.
-**Custom Filters**: Extend PyJan26 with custom filters to manipulate content or metadata during the generation process.
-**Custom Collections**: Organize your content into custom collections to facilitate flexible and structured site organization.
-
 ## Installation
 You can install PyJan26 using pip:
 
@@ -17,80 +8,73 @@ You can install PyJan26 using pip:
 pip install pyjan26
 ```
 
-## Directory Structure and Usage
+## Directory Structure
 
-PyJan26 follows a specific directory structure to organize your templates, content, and generated files. Here's how you can structure your project:
+PyJan26 follows a specific directory structure:
 
 project_directory/
 │
-├── _templates/
-│ ├── base.html # Base template for all pages
-│ └── custom_template.html # Extendable template for specific pages
+├── _templates/ # Base and extendable templates
+│ ├── base.html
+│ └── custom_template.html
 │
-├── _content/
-│ ├── post1.md # Markdown file for Post 1
-│ ├── post2.md # Markdown file for Post 2
-│ └── about.md # Markdown file for About page
+├── _content/ # Content files (Markdown)
+│ ├── post1.md
+│ ├── post2.md
+│ └── about.md
 │
-└── public/
-├── index.html # Generated index page
-├── post1/index.html # Generated page for Post 1
-├── post2/index.html # Generated page for Post 2
-└── about/index.html # Generated page for About
+└── public/ # Generated HTML files
+├── index.html
+├── post1/index.html
+├── post2/index.html
+└── about/index.html
 
 
-### Base Templates
+### Usage
 
-Design your base templates in the `_templates` directory. These templates provide the overall structure and layout for your site. Here's an example of a basic base template (`base.html`):
+- **Templates**: Design your base and extendable templates in `_templates`.
+- **Content**: Define content files in `_content`. Each file specifies the layout and content of a page.
+- **Generated Files**: PyJan26 generates static HTML files in the `public` folder based on templates and content files.
+
+### Pagination
+
+To configure pagination, add the following YAML front matter to your content files:
+
+```yaml
+layout: custom_template.html   # Specify the layout template
+title: Post 1                  # Set the title of the page
+paginated:                     # Configure pagination
+  items: tags                  # Specify the grouping criteria (e.g., tags)
+  size: 1                      # Set the number of items per page
+  alias: myitem                # Set a custom alias for the paginated items
+```
+
+### Pagination Variables
+When pagination is enabled, PyJan26 provides built-in template variables that you can use to generate pagination links:
 
 ```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My Static Site</title>
-</head>
-<body>
+{% if myitem %}
+  {% for page in myitem %}
+    <span><a href="/post/{{ page.tag }}">{{ page.tag }}</a></span>
+  {% endfor %}
+{% endif %}
 
-    {% block content %}{% endblock %}
-</body>
-</html>
+{% if pagination.prev_page %}
+  <a href="{{ pagination.prev_page }}">Previous</a>
+{% endif %}
+
+{% for page_num in pagination.page_numbers %}
+  <a href="{{ page_num.url }}">{{ page_num.page_number }}</a>
+{% endfor %}
+
+{% if pagination.next_page %}
+  <a href="{{ pagination.next_page }}">Next</a>
+{% endif %}
 ```
 
-The {% block content %} and {% endblock %} tags define where the content of each page will be inserted. You can extend this base template in other templates to maintain a consistent design across your site.
+In this example:
 
-
-## Extend Templates
-In addition to base templates, you can create extendable templates in the _templates directory for specific pages. These templates can extend the base template and provide additional customization as needed. Here's an example of an extendable template (custom_template.html):
-
-```html
-{% extends 'base.html' %}
-
-{% block content %}
-    <div>
-        {{ content | safe }}
-    </div>
-{% endblock %}
-```
-Adjust the content within the {% block content %} tags to customize the layout of specific pages.
-
-## Content Files
-Define your content files in the _content directory. These files contain the content for each page of your site. Content can be written in Markdown or another supported format. Here's an example of a content file (post1.md):
-
-```markdown
----
-layout: custom_template.html
-title: Post 1
----
-
-# Post 1
-
-Content of your post goes here.
-```
-
-In this example, layout specifies the template to use for rendering the page, and title sets the title of the page.
-
-## Public Folder
-Generated files will be stored in the public folder. This folder contains the static HTML files generated by PyJan26 based on your templates and content files.
-
-
-
+myitem represents the paginated items.
+pagination.prev_page provides a link to the previous page.
+pagination.page_numbers generates links to each page.
+pagination.next_page provides a link to the next page.
