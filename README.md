@@ -181,3 +181,19 @@ custom1: True                  # Apply custom page rendering
 
 This instructs PyJan26 to use the custom_page1 function for rendering this specific content. Adjust metadata as needed.
 
+## Global Variable
+
+To create a global variable PAGE_SIZE in settings.py, simply define it at the top of the file like so:
+
+```python
+# settings.py
+
+PAGE_SIZE = 10
+```
+
+This renders the template value of PAGE_SIZE defined in the settings.py module.
+
+```html
+{{ settings.PAGE_SIZE }}
+```
+
