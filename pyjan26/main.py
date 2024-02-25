@@ -1,29 +1,30 @@
 import os
-from pyjan26.core import Jan26Gen
+import shutil
+import pkg_resources
 from importlib import import_module
-
-custom_pages_module = os.environ.get('PYJAN26_PAGES_MODULE')
-if not custom_pages_module:
-    print("PYJAN26_PAGES_MODULE environment variable is not set")
-else:
-    custom_pages = import_module(custom_pages_module) # type: ignore
-    
-
-collections_module = os.environ.get('PYJAN26_COLLECTIONS_MODULE')
-if not collections_module:
-    print("PYJAN26_COLLECTIONS_MODULE environment variable is not set")
-else:
-    custom_collections = import_module(collections_module) # type: ignore
+from pyjan26.core import Jan26Gen
 
 
-filters_module = os.environ.get('PYJAN26_FILTERS_MODULE')
-if not filters_module:
-    print("PYJAN26_FILTERS_MODULE environment variable is not set")
-else:
-    custom_filters = import_module(filters_module) # type: ignore
+def generate_file(file_path: str, default_file: str) -> None:
 
+    if not os.path.exists(file_path):
+        default_path = pkg_resources.resource_filename(__name__, default_file)
+        shutil.copy(default_path, file_path)
+        print(f"Created {file_path} from {default_path}")
 
 if __name__ == '__main__':
+
+    generate_file('custom_pages.py', 'default_custom_pages.py')
+    generate_file('custom_collections.py', 'default_custom_collections.py')
+    generate_file('custom_filters.py', 'default_custom_filters.py')
+
+    custom_pages_module = os.environ.setdefault('PYJAN26_PAGES_MODULE', 'custom_pages')
+    collections_module = os.environ.setdefault('PYJAN26_COLLECTIONS_MODULE', 'custom_collections')
+    filters_module = os.environ.setdefault('PYJAN26_FILTERS_MODULE', 'custom_filters')
+
+    import_module(custom_pages_module) # type: ignore
+    import_module(collections_module) # type: ignore
+    import_module(filters_module) # type: ignore
 
     gen = Jan26Gen()
     gen.generate_site()
