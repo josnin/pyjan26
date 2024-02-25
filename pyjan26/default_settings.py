@@ -15,7 +15,7 @@ DEFAULT_LAYOUT = 'base.html'
 
 # Copy Static files
 STATIC_PATHS = [
-    "images/img3", #whole directory
+    "images", #whole directory
     "assets/robots.txt" #specific file
 ]
 
