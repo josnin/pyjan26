@@ -12,6 +12,7 @@ pip install pyjan26
 
 PyJan26 follows a specific directory structure:
 
+```bash
 project_directory/
 │
 ├── _templates/ # Base and extendable templates
@@ -28,6 +29,7 @@ project_directory/
 ├── post1/index.html
 ├── post2/index.html
 └── about/index.html
+```
 
 
 ### Usage
@@ -74,7 +76,7 @@ When pagination is enabled, PyJan26 provides built-in template variables that yo
 
 In this example:
 
-myitem represents the paginated items.
-pagination.prev_page provides a link to the previous page.
-pagination.page_numbers generates links to each page.
-pagination.next_page provides a link to the next page.
+* myitem represents the paginated items.
+* pagination.prev_page provides a link to the previous page.
+* pagination.page_numbers generates links to each page.
+* pagination.next_page provides a link to the next page.
