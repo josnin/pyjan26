@@ -26,19 +26,6 @@ To run your generated static site :
 python -m http.server
 ```
 
-## Installation
-You can install PyJan26 using pip:
-
-```bash
-pip install pyjan26
-
-python -m pyjan26.main s <project_name> # to start a new project
-cd <project_name>
-
-python -m pyjan26.main g # to generate project structure
-
-```
-
 ## Directory Structure
 
 PyJan26 follows a specific directory structure:
