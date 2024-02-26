@@ -2,7 +2,11 @@
 from pyjan26.registry import register_custom_page
 from pyjan26.core import render_page, render_string
 
-print('user define custom page? here')
+# The use case of custom_page function includes scenarios where you need to 
+# generate pages dynamically based on data from an external API, database, 
+# or any other data source, or when you want to programmatically 
+# generate pages based on specific criteria or conditions that 
+# cannot be achieved through standard file-based page generation.
 def custom_page1(*args, **kwargs):
     
 
@@ -24,31 +28,5 @@ def custom_page1(*args, **kwargs):
 
     return { 'skip_next': False }
 
-#def render_split_by_items(self, items, collection_name, collections, settings2, out_dir=None):
-#    split_by = items.get('split_by')
-#    split_by_items = split_by.get('items')
-#    alias = split_by.get('alias', f'splitby{collection_name.title()}')
-#
-#    for page_items in collections.get(split_by_items):
-#        #out_dir1 = self.render_output_directory(out_dir, page_items)
-#        out_dir1 =  render_string(out_dir, page_item)
-#        #out_dir1 = render_output_directory(out_dir, page_items)
-#        print(page_items, out_dir)
-#        page_data = {
-#            'collection_name': collection_name,
-#            'collections': collections,
-#            'settings': settings2,
-#            'items': items,
-#            'page_items': page_items, 
-#            'alias': alias,
-#            'out_dir': out_dir1
-#        }
-#
-#        #if settings.DEBUG:
-#        #    print(f'RENDER_SPLIT_BY: page_data: {page_data}')
-#
-#        self.render_page(page_data, 1)
-#
 
-
-register_custom_page('jump', custom_page1)
+register_custom_page('custom1', custom_page1)

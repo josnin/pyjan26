@@ -22,13 +22,3 @@ STATIC_PATHS = [
 PAGE_SIZE = 10
 
 
-
-METADATA = {
-    "abc": "efg"
-}
-
-DATA = {
-  "title": "My Static Site",
-  "author": "John Doe",
-  "description": "A simple static site generated with Python and Jinja2."
-}
