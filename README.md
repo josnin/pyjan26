@@ -122,18 +122,18 @@ Define custom filters in custom_filters.py:
 
 from pyjan26.registry import register_custom_filters
 
-# Define custom filter functions
-def custom_filter1(value):
-    # Custom filter logic
-    return f"{value} customize??" 
+def capitalize_words(value):
+    return ' '.join(word.capitalize() for word in value.split())
 
-register_custom_filters([custom_filter1])
+
+# Register custom filters
+register_custom_filters([capitalize_words])
 ```
 
 To use the custom filter in your templates, follow this syntax:
 
 ```html
-{{ var | custom_filter1 }}
+{{ content | capitalize_words }}
 ```
 
 
@@ -166,7 +166,6 @@ def custom_page1(*args, **kwargs):
 
     render_page(page_data)
 
-    return {'skip_next': False}
 
 register_custom_page('custom1', custom_page1)
 ```
@@ -188,6 +187,7 @@ To create a global variable PAGE_SIZE in settings.py, simply define it at the to
 ```python
 # settings.py
 
+#example only
 PAGE_SIZE = 10
 ```
 

@@ -1,12 +1,9 @@
 from pyjan26.registry import register_custom_filters
 
-## Example 
-## Define custom filter functions
-#def custom_filter_function1(value):
-#    # Custom filter logic
-#    return f"{value} customize??" 
+#def capitalize_words(value):
+#    return ' '.join(word.capitalize() for word in value.split())
 #
 #
 #register_custom_filters([
-#    custom_filter_function1
+#    capitalize_words,
 #])

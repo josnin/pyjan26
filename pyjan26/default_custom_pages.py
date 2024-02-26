@@ -4,7 +4,11 @@ from pyjan26.core import render_page, render_string
 
 #Example 
 
-##Create a custom page function
+## The use case of custom_page function includes scenarios where you need to 
+## generate pages dynamically based on data from an external API, database, 
+## or any other data source, or when you want to programmatically 
+## generate pages based on specific criteria or conditions that 
+## cannot be achieved through standard file-based page generation.
 #def custom_page1(*args, **kwargs):
 #    
 #
