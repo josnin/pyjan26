@@ -54,11 +54,7 @@ project_directory/
 │   ├── post1.md        
 │   ├── post2.md        
 │   └── about.md        
-│
-├── settings.py   # Other global variables
-├── custom_collections.py   # Custom collections
-├── custom_filters.py       # Custom filters
-├── custom_pages.py         # Custom page rendering
+
 │
 └── public/               # Generated HTML files
     ├── index.html      
