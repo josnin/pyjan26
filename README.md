@@ -6,6 +6,12 @@ You can install PyJan26 using pip:
 
 ```bash
 pip install pyjan26
+
+python -m pyjan26.main s <project_name> # to start a new project
+cd <project_name>
+
+python -m pyjan26.main g # to generate project structure
+
 ```
 
 ## Directory Structure
@@ -15,20 +21,29 @@ PyJan26 follows a specific directory structure:
 ```bash
 project_directory/
 │
-├── _templates/ # Base and extendable templates
-│ ├── base.html
-│ └── custom_template.html
+├── _templates/          # Base and extendable templates
+│   ├── base.html        
+│   └── custom_template.html  
 │
-├── _content/ # Content files (Markdown)
-│ ├── post1.md
-│ ├── post2.md
-│ └── about.md
+├── _content/            # Content files (Markdown)
+│   ├── post1.md        
+│   ├── post2.md        
+│   └── about.md        
 │
-└── public/ # Generated HTML files
-├── index.html
-├── post1/index.html
-├── post2/index.html
-└── about/index.html
+├── settings.py   # Other global variables
+├── custom_collections.py   # Custom collections
+├── custom_filters.py       # Custom filters
+├── custom_pages.py         # Custom page rendering
+│
+└── public/               # Generated HTML files
+    ├── index.html      
+    ├── post1/
+    │   └── index.html   # Generated page for post1
+    ├── post2/
+    │   └── index.html   # Generated page for post2
+    └── about/
+        └── index.html   # Generated page for about
+
 ```
 
 
@@ -46,7 +61,7 @@ To configure pagination, add the following YAML front matter to your content fil
 layout: custom_template.html   # Specify the layout template
 title: Post 1                  # Set the title of the page
 paginated:                     # Configure pagination
-  items: tags                  # Specify the grouping criteria (e.g., tags)
+  items: tags                  # Specify the grouping criteria / collections (e.g., tags)
   size: 1                      # Set the number of items per page
   alias: myitem                # Set a custom alias for the paginated items
 ```
@@ -167,33 +182,34 @@ def custom_page1(*args, **kwargs):
     render_page(page_data)
 
 
-register_custom_page('custom1', custom_page1)
+# Register custom page
+register_custom_pages([custom_page1])
 ```
 
-To apply custom page rendering to a content markdown file, add custom1: True to the YAML front matter:
+To apply custom page rendering to a content markdown file, add custom_page1: True to the YAML front matter:
 
 ```yaml
 layout: custom_template.html   # Specify the layout template
 title: Post 1  
-custom1: True                  # Apply custom page rendering
+custom_page1: True                  # Apply custom page rendering
 ```
 
 This instructs PyJan26 to use the custom_page1 function for rendering this specific content. Adjust metadata as needed.
 
 ## Global Variable
 
-To create a global variable PAGE_SIZE in settings.py, simply define it at the top of the file like so:
+To create a global variable, simply define it in settings.py:
 
 ```python
 # settings.py
 
 #example only
-PAGE_SIZE = 10
+AUTHOR = 'Josnin'
 ```
 
-This renders the template value of PAGE_SIZE defined in the settings.py module.
+This renders the template value of AUTHOR defined in the settings.py module.
 
 ```html
-{{ settings.PAGE_SIZE }}
+{{ settings.AUTHOR }}
 ```
 
