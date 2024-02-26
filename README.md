@@ -54,13 +54,6 @@ project_directory/
 
 ```
 
-
-### Usage
-
-- **Templates**: Design your base and extendable templates in `_templates`.
-- **Content**: Define content files in `_content`. Each file specifies the layout and content of a page.
-- **Generated Files**: PyJan26 generates static HTML files in the `public` folder based on templates and content files.
-
 ### Pagination
 
 To configure pagination, add the following YAML front matter to your content files:
