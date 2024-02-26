@@ -1,6 +1,31 @@
 # PyJan26
 PyJan26 is a static site generator written in Python. It allows you to generate static websites from templates and content files, with support for pagination, custom pages, custom filters, and custom collections.
 
+## Install PyJan26 using pip:
+
+```bash
+pip install pyjan26
+```
+
+Initialize a new project:
+
+```bash
+python -m pyjan26.main s <project_name>
+cd <project_name>
+```
+
+Generate static site:
+
+```bash
+python -m pyjan26.main g
+```
+
+To run your generated static site :
+
+```bash
+python -m http.server
+```
+
 ## Installation
 You can install PyJan26 using pip:
 
@@ -109,92 +134,11 @@ STATIC_PATHS = [
 ```
 Adjust the paths as needed to include directories or specific files you want to copy.
 
+## Customization
+* Define custom collections in custom_collections.py.
+* Define custom filters in custom_filters.py.
+* Define custom page rendering in custom_pages.py.
 
-## Custom Collections
-
-Define custom collections in `custom_collections.py`:
-
-```python
-# custom_collections.py
-
-from pyjan26.registry import register_custom_collections
-
-def tag_list(collections):
-    """
-    Define a list of tags for the 'tags' collection.
-    """
-    return {'tags': [{'tag': 'javascript'}, {'tag': 'python'}]}
-
-# Register custom collections
-register_custom_collections([tag_list])
-```
-
-## Custom Filters
-Define custom filters in custom_filters.py:
-
-```python
-# custom_filters.py
-
-from pyjan26.registry import register_custom_filters
-
-def capitalize_words(value):
-    return ' '.join(word.capitalize() for word in value.split())
-
-
-# Register custom filters
-register_custom_filters([capitalize_words])
-```
-
-To use the custom filter in your templates, follow this syntax:
-
-```html
-{{ content | capitalize_words }}
-```
-
-
-## Custom Page Rendering
-Define custom page rendering in custom_page.py:
-
-```python
-# custom_page.py
-
-from pyjan26.registry import register_custom_page
-from pyjan26.core import render_page, render_string
-
-def custom_page1(*args, **kwargs):
-    """
-    Custom page rendering function.
-    """
-    item, collection_name, collections, settings = args
-    out_dir = kwargs.get('out_dir')
-
-    # render jinja variable
-    if out_dir:
-        out_dir = render_string(out_dir, item)
-
-    page_data = {
-        'collection_name': collection_name,
-        'collections': collections,
-        'items': item,
-        'out_dir': out_dir
-    }
-
-    render_page(page_data)
-
-
-# Register custom page
-register_custom_pages([custom_page1])
-```
-
-To apply custom page rendering to a content markdown file, add custom_page1: True to the YAML front matter:
-
-```yaml
-layout: custom_template.html   # Specify the layout template
-title: Post 1  
-custom_page1: True                  # Apply custom page rendering
-```
-
-This instructs PyJan26 to use the custom_page1 function for rendering this specific content. Adjust metadata as needed.
 
 ## Global Variable
 
