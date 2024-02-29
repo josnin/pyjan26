@@ -23,7 +23,7 @@ python -m pyjan26.main g
 To run your generated static site :
 
 ```bash
-python -m http.server
+python -m http.server --directory public/
 ```
 
 ## Directory Structure
