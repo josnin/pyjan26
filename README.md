@@ -188,8 +188,9 @@ To apply custom page rendering to a content markdown file, add custom1: True to 
 layout: custom_template.html   # Specify the layout template
 title: Post 1  
 custom1: True                  # Apply custom page rendering
-This instructs PyJan26 to use the custom_page1 function for rendering this specific content. Adjust metadata as needed.
 ```
+
+This instructs PyJan26 to use the custom_page1 function for rendering this specific content. Adjust metadata as needed.
 
 
 ## Global Variable
@@ -209,3 +210,17 @@ This renders the template value of AUTHOR defined in the settings.py module.
 {{ settings.AUTHOR }}
 ```
 
+## How to run development server?
+
+```bash
+git clone https://github.com/josnin/pyjan26.git
+cd ~/Documents/pyjan26/
+```
+
+## Help
+
+Need help? Open an issue in: [ISSUES](https://github.com/josnin/pyjan26/issues)
+
+
+## Contributing
+Want to improve and add feature? Fork the repo, add your changes and send a pull request.
