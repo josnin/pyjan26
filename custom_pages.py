@@ -1,5 +1,5 @@
 
-from pyjan26.registry import register_custom_page
+from pyjan26.registry import register_custom_pages
 from pyjan26.core import render_page, render_string
 
 # The use case of custom_page function includes scenarios where you need to 
@@ -8,7 +8,7 @@ from pyjan26.core import render_page, render_string
 # generate pages based on specific criteria or conditions that 
 # cannot be achieved through standard file-based page generation.
 def custom_page1(*args, **kwargs):
-    
+
 
     item, collection_name, collections, settings = args
     out_dir = kwargs.get('out_dir')
@@ -29,4 +29,4 @@ def custom_page1(*args, **kwargs):
     return { 'skip_next': False }
 
 
-register_custom_page('custom1', custom_page1)
+register_custom_pages([custom_page1])

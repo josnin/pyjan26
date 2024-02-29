@@ -1,5 +1,5 @@
 
-from pyjan26.registry import register_custom_page
+from pyjan26.registry import register_custom_pages
 from pyjan26.core import render_page, render_string
 
 #Example 
@@ -32,4 +32,4 @@ from pyjan26.core import render_page, render_string
 #
 #
 ##Register the custom page
-#register_custom_page('jump', custom_page1)
+#register_custom_pages([custom_page1])
