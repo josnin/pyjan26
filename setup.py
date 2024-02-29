@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pyjan26',
-    version='0.2',
+    version='0.4',
     packages=find_packages(),
     install_requires=[
         'Jinja2>=3.1.3',

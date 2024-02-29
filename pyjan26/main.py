@@ -4,7 +4,7 @@ import pkgutil
 import pkg_resources
 import argparse
 from importlib import import_module
-from pyjan26.core import Jan26Gen
+from pyjan26.core import PyJan26
 
 
 def start_project(project_name):
@@ -68,7 +68,7 @@ def main():
         import_module(collections_module) # type: ignore
         import_module(filters_module) # type: ignore
 
-        gen = Jan26Gen()
+        gen = PyJan26()
         gen.generate_site()
 
 if __name__ == '__main__':

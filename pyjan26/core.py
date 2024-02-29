@@ -214,7 +214,7 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
     generate_file(out_dir, final_out, rendered_template)
 
 
-class Jan26Gen:
+class PyJan26:
     def __init__(self):
         self.template_dir = os.getenv('TEMPLATE_DIR', settings.TEMPLATE_DIR)
         self.content_dir = os.getenv('CONTENT_DIR', settings.CONTENT_DIR)
