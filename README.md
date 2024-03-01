@@ -60,20 +60,20 @@ To configure pagination, add the following YAML front matter to your content fil
 
 ```yaml
 layout: custom_template.html   # Specify the layout template
-title: Post 1                  # Set the title of the page
+title: Blog Post 1                  # Set the title of the page
 paginated:                     # Configure pagination
-  items: tags                  # Specify the grouping criteria / collections (e.g., tags)
-  size: 1                      # Set the number of items per page
-  alias: myitem                # Set a custom alias for the paginated items
+  items: blogs                  # Specify the grouping criteria / collections (e.g., tags)
+  size: 10                      # Set the number of items per page
+  alias: myblogs                # Set a custom alias for the paginated items
 ```
 
 ### Pagination Variables
 When pagination is enabled, PyJan26 provides built-in template variables that you can use to generate pagination links:
 
 ```html
-{% if myitem %}
-  {% for page in myitem %}
-    <span><a href="/post/{{ page.tag }}">{{ page.tag }}</a></span>
+{% if myblogs %}
+  {% for blog in myblogs %}
+    <span><a href="/blog/{{ blog.name }}">{{ blog.name }}</a></span>
   {% endfor %}
 {% endif %}
 
@@ -85,6 +85,10 @@ When pagination is enabled, PyJan26 provides built-in template variables that yo
   <a href="{{ page_num.url }}">{{ page_num.page_number }}</a>
 {% endfor %}
 
+{% if pagination.total_pages %}
+  Total pages of: {{ pagination.total_pages }}
+{% endif %}
+
 {% if pagination.next_page %}
   <a href="{{ pagination.next_page }}">Next</a>
 {% endif %}
@@ -92,7 +96,8 @@ When pagination is enabled, PyJan26 provides built-in template variables that yo
 
 In this example:
 
-* myitem represents the paginated items.
+* myblogs represents the paginated blogs.
+* pagination.total_pages represents the total pages.
 * pagination.prev_page provides a link to the previous page.
 * pagination.page_numbers generates links to each page.
 * pagination.next_page provides a link to the next page.
