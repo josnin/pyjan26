@@ -85,8 +85,8 @@ When pagination is enabled, PyJan26 provides built-in template variables that yo
   <a href="{{ page_num.url }}">{{ page_num.page_number }}</a>
 {% endfor %}
 
-{% if pagination.total_pages %}
-  Total pages of: {{ pagination.total_pages }}
+{% if pagination.page_number and pagination.total_pages %}
+  Page {{ pagination.page_number}} of: {{ pagination.total_pages }}
 {% endif %}
 
 {% if pagination.next_page %}
@@ -99,6 +99,7 @@ In this example:
 * myblogs represents the paginated blogs.
 * pagination.total_pages represents the total pages.
 * pagination.prev_page provides a link to the previous page.
+* pagination.page_number represents the current page number.
 * pagination.page_numbers generates links to each page.
 * pagination.next_page provides a link to the next page.
 
