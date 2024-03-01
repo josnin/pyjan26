@@ -178,16 +178,18 @@ def custom_page1(*args, **kwargs):
 
     render_page(page_data)
 
+    return { 'skip_next': False }
 
-register_custom_page('custom1', custom_page1)
+
+register_custom_page([custom_page1])
 ```
 
-To apply custom page rendering to a content markdown file, add custom1: True to the YAML front matter:
+To apply custom page rendering to a content markdown file, add custom_page1: True to the YAML front matter:
 
 ```yaml
 layout: custom_template.html   # Specify the layout template
 title: Post 1  
-custom1: True                  # Apply custom page rendering
+custom_page1: True                  # Apply custom page rendering
 ```
 
 This instructs PyJan26 to use the custom_page1 function for rendering this specific content. Adjust metadata as needed.
