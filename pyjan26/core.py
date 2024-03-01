@@ -14,15 +14,6 @@ from pyjan26.registry import (
     CUSTOM_FILTER_REGISTRY
 )
 
-def generate_file(file_path, default_file):
-
-    if not os.path.exists(file_path):
-        default_path = pkg_resources.resource_filename(__name__, default_file)
-        shutil.copy(default_path, file_path)
-        print(f"Created {file_path} from {default_path}")
-
-    
-generate_file('settings.py', 'default_settings.py')
 
 #import settings
 settings_module = os.environ.setdefault('PYJAN26_SETTINGS_MODULE', 'settings')

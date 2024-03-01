@@ -4,7 +4,6 @@ import pkgutil
 import pkg_resources
 import argparse
 from importlib import import_module
-from pyjan26.core import PyJan26
 
 
 def start_project(project_name):
@@ -56,17 +55,17 @@ def main():
     if args.command == "s":
         start_project(args.project_name)
     elif args.command == "g":
-        #generate_file('custom_pages.py', 'default_custom_pages.py')
-        #generate_file('custom_collections.py', 'default_custom_collections.py')
-        #generate_file('custom_filters.py', 'default_custom_filters.py')
 
         custom_pages_module = os.environ.setdefault('PYJAN26_PAGES_MODULE', 'custom_pages')
         collections_module = os.environ.setdefault('PYJAN26_COLLECTIONS_MODULE', 'custom_collections')
         filters_module = os.environ.setdefault('PYJAN26_FILTERS_MODULE', 'custom_filters')
 
+
         import_module(custom_pages_module) # type: ignore
         import_module(collections_module) # type: ignore
         import_module(filters_module) # type: ignore
+
+        from pyjan26.core import PyJan26
 
         gen = PyJan26()
         gen.generate_site()

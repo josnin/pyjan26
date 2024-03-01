@@ -2,11 +2,15 @@ from setuptools import setup, find_packages
 
 setup(
     name='pyjan26',
-    version='0.4',
+    version='0.9',
+    python_requires='>=3.6',
+    setup_requires=['setuptools>=38.6.0', 'wheel'],
     packages=find_packages(),
+    package_data={'pyjan26': ['project_structure/_content/*.md', 'project_structure/_templates/*.html']},
     install_requires=[
         'Jinja2>=3.1.3',
-        'jinja2_markdown>=0.0.3'
+        'jinja2_markdown>=0.0.3',
+        'python-frontmatter==1.1.0'
     ],
     author='Josnin',
     license='MIT',
