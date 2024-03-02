@@ -110,6 +110,7 @@ class TemplateRenderer:
 class FileGenerator:
     def generate(self, out_dir: str, final_path: str, rendered_template: str) -> None:
 
+
         os.makedirs(out_dir, exist_ok=True)
 
         with open(final_path, 'w', encoding='utf-8') as f:
@@ -136,24 +137,28 @@ def generate_file(out_dir: str, final_out: str, rendered_template: str) -> None:
     file_generator = FileGenerator()
     return file_generator.generate(out_dir, final_out, rendered_template)
 
-def get_output_directory(collection_name: str, out_dir: str | None, page_num: int | None, items: Dict[str, Any]) -> str | None:
-
-    if out_dir:
-        out_dir = f'{settings.OUTPUT_DIR}/{out_dir}'
-        out_dir = render_string(out_dir, items)
+def get_output_directory(collection_name: str, out_dir: str | None, page_num: int | None, items: Dict[str, Any]) -> str:
+    output_dir = settings.OUTPUT_DIR
+    
+    if out_dir: #if custom out_dir
+        if collection_name != '_contents': # make sure its folder collections
+            output_dir = os.path.join(output_dir, collection_name)
+        output_dir = os.path.join(output_dir, out_dir)
+        output_dir = render_string(output_dir, items)
     elif page_num:
-        out_dir = f'{settings.OUTPUT_DIR}/{collection_name}/{page_num}'
+        output_dir = os.path.join(output_dir, collection_name, str(page_num))
     else:
         base_name = os.path.splitext(items['base_name'])[0]
         if base_name == 'index' and collection_name == settings.CONTENT_DIR:
-            out_dir = settings.OUTPUT_DIR
+            output_dir = settings.OUTPUT_DIR
         elif base_name == 'index':
-            out_dir = f'{settings.OUTPUT_DIR}/{collection_name}'
+            output_dir = os.path.join(output_dir, collection_name)
         elif collection_name == settings.CONTENT_DIR:
-            out_dir = f'{settings.OUTPUT_DIR}/{base_name}'
+            output_dir = os.path.join(output_dir, base_name)
         else:
-            out_dir = f'{settings.OUTPUT_DIR}/{collection_name}/{base_name}'
-    return out_dir
+            output_dir = os.path.join(output_dir, collection_name, base_name)
+    
+    return output_dir
 
 def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) -> None:
     #template_renderer = TemplateRenderer(settings.TEMPLATE_DIR)    
@@ -163,12 +168,8 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
     settings2 = page_data.get('settings', {})
     collection_name = page_data.get('collection_name', '')
     pagination = page_data.get('pagination', {})
-
-    #should we mov under pagination dict?
     page_items = page_data.get('page_items', {})
     alias = page_data.get('alias')
-
-    #custom output directory?
     out_dir = page_data.get('out_dir')
 
     if settings.DEBUG:
@@ -180,16 +181,23 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
         'collections': collections, 
         'settings': settings2,
         'pagination': pagination,
-        **({alias : page_items} if page_items else {})
     }
+    if page_items:
+        context[alias] = page_items
 
     # Render Markdown HTML content
     html_content = render_string(items['content'], context)
     
-    out_dir = get_output_directory(collection_name, out_dir, page_num, items)
+    out_dir2 = get_output_directory(collection_name, out_dir, page_num, items)
 
-
-    final_out = f'{out_dir}/index.html'
+    if is_filepath(out_dir2):
+        # do this if the dir path is provided
+        # ex. post/post.html
+        final_out = out_dir2
+        out_dir2 = '/'.join(out_dir2.split('/')[:-1])
+    else:
+        final_out = os.path.join(out_dir2, 'index.html')
+    #final_out = f'{out_dir2}/index.html'
 
 
     rendered_template = render_template(
@@ -200,9 +208,12 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
             'pagination': pagination
             }
     )
-    #import pprint
-    #pprint.pprint({'content': html_content, **context})
-    generate_file(out_dir, final_out, rendered_template)
+
+    generate_file(out_dir2, final_out, rendered_template)
+
+def is_filepath(out_dir: str):
+    _, ext = os.path.splitext(out_dir)
+    return bool(ext)
 
 
 class PyJan26:
