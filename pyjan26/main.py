@@ -38,37 +38,30 @@ def start_project(project_name):
         print(f"Error creating project '{project_name}': {e}")
 
 
-#def generate_file(file_path: str, default_file: str) -> None:
-#
-#    if not os.path.exists(file_path):
-#        default_path = pkg_resources.resource_filename(__name__, default_file)
-#        shutil.copy(default_path, file_path)
-#        print(f"Created {file_path} from {default_path}")
-
 def main():
     parser = argparse.ArgumentParser(description="PyJan26 Command Line Interface")
     parser.add_argument("command", choices=["s", "g"], help="Command to execute: 's' for startproject, 'g' for generate")
-    parser.add_argument("project_name", nargs="?", help="Name of the project")
+    parser.add_argument("project_name_or_files", nargs="?", help="Project Name (only for 's' command) or Include files to generate (only for 'g' command)")
 
     args = parser.parse_args()
 
     if args.command == "s":
-        start_project(args.project_name)
+        start_project(args.project_name_or_files)
     elif args.command == "g":
-
         custom_pages_module = os.environ.setdefault('PYJAN26_PAGES_MODULE', 'custom_pages')
         collections_module = os.environ.setdefault('PYJAN26_COLLECTIONS_MODULE', 'custom_collections')
         filters_module = os.environ.setdefault('PYJAN26_FILTERS_MODULE', 'custom_filters')
 
+        import_module(custom_pages_module)
+        import_module(collections_module)
+        import_module(filters_module)
 
-        import_module(custom_pages_module) # type: ignore
-        import_module(collections_module) # type: ignore
-        import_module(filters_module) # type: ignore
+        from pyjan26.core import PyJan26, get_markdown_files
 
-        from pyjan26.core import PyJan26
-
-        gen = PyJan26()
+        files = get_markdown_files(args.project_name_or_files)
+        gen = PyJan26(files)
         gen.generate_site()
+
 
 if __name__ == '__main__':
     main()

@@ -120,8 +120,10 @@ class FileGenerator:
             print('FILE GENERATOR: makedirs', out_dir)
             print(f'FILE GENERATOR: write_to_file {final_path}')
 
-def get_markdown_files(content_dir: str) -> List[str]:
-    return glob.glob(os.path.join(content_dir, "**/*.md"), recursive=True)
+def get_markdown_files(include_files=None) -> List[str]:
+    if include_files:
+        return glob.glob(include_files)
+    return glob.glob(os.path.join(settings.CONTENT_DIR, "**/*.md"), recursive=True)
 
 def render_string(content: str, context: Dict[str, Any]) -> str:
     template_renderer = TemplateRenderer(settings.TEMPLATE_DIR)
@@ -217,7 +219,7 @@ def is_filepath(out_dir: str):
 
 
 class PyJan26:
-    def __init__(self):
+    def __init__(self, markdown_files):
         self.template_dir = os.getenv('TEMPLATE_DIR', settings.TEMPLATE_DIR)
         self.content_dir = os.getenv('CONTENT_DIR', settings.CONTENT_DIR)
         self.output_dir = os.getenv('OUTPUT_DIR', settings.OUTPUT_DIR)
@@ -226,6 +228,8 @@ class PyJan26:
         self.content_parser = ContentParser()
         self.template_renderer = TemplateRenderer(self.template_dir)
         self.custom_collections: List[Callable] = []
+
+        self.markdown_files = markdown_files
 
         if CUSTOM_FILTER_REGISTRY:
             self.template_renderer.add_filters(CUSTOM_FILTER_REGISTRY)
@@ -252,10 +256,10 @@ class PyJan26:
         return collections
 
     def build_collections(self) -> Dict[str, Any]:
-        markdown_files = get_markdown_files(self.content_dir)
+        #markdown_files = get_markdown_files(self.content_dir)
         collections: Dict[str, Dict] = { 'collections': {} }
 
-        for markdown_file in markdown_files:
+        for markdown_file in self.markdown_files:
             frontmatter_data, markdown_data_dict = self.content_parser.parse(markdown_file)  
             collection_name = os.path.basename(os.path.dirname(markdown_file))
 
@@ -373,6 +377,7 @@ class PyJan26:
     def generate_site(self):
         self.template_renderer.build_custom_filters()
         collections = self.build_collections()
+
         self.render_collections(collections)
         
         copy_static_files(settings.STATIC_PATHS, self.output_dir)
