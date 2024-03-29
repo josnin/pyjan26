@@ -143,7 +143,7 @@ def get_output_directory(collection_name: str, out_dir: str | None, page_num: in
     output_dir = settings.OUTPUT_DIR
     
     if out_dir: #if custom out_dir
-        if collection_name != '_contents': # make sure its folder collections
+        if collection_name != settings.CONTENT_DIR: # make sure its folder collections
             output_dir = os.path.join(output_dir, collection_name)
         output_dir = os.path.join(output_dir, out_dir)
         output_dir = render_string(output_dir, items)
