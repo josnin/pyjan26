@@ -3,11 +3,10 @@ import pkg_resources
 import shutil
 import json
 import glob
-#import markdown2
+import markdown
 import frontmatter  # type: ignore
 from importlib import import_module
 from jinja2 import Environment, FileSystemLoader, BaseLoader
-from jinja2_markdown import MarkdownExtension  # type: ignore
 from typing import List, Dict, Any, Union, Callable, Tuple
 from pyjan26.registry import (
     CUSTOM_PAGE_REGISTRY, CUSTOM_COLLECTION_REGISTRY, 
@@ -81,11 +80,7 @@ class ContentParser:
 
 class TemplateRenderer:
     def __init__(self, templates_dir: str) -> None:
-        #self.env = Environment(loader=FileSystemLoader(templates_dir))
-        self.env = Environment(
-            loader=FileSystemLoader(templates_dir),
-            extensions=[MarkdownExtension],
-        )
+        self.env = Environment(loader=FileSystemLoader(templates_dir))
 
         self.custom_filters: List[Callable] = []
 
@@ -188,7 +183,10 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
         context[alias] = page_items
 
     # Render Markdown HTML content
-    html_content = render_string(items['content'], context)
+    html_content = render_string(
+            markdown.markdown(items['content'], 
+            context
+        )
     
     out_dir2 = get_output_directory(collection_name, out_dir, page_num, items)
 
