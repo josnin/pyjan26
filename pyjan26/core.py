@@ -84,6 +84,10 @@ class TemplateRenderer:
 
         self.custom_filters: List[Callable] = []
 
+        if CUSTOM_FILTER_REGISTRY:
+            self.add_filters(CUSTOM_FILTER_REGISTRY)
+            self.build_custom_filters()
+
     def render(self, template_name: str, context: Dict[str, Any]) -> str:
         template = self.env.get_template(template_name)
         return template.render(context)
@@ -224,13 +228,9 @@ class PyJan26:
         self.default_layout = os.getenv('DEFAULT_LAYOUT', settings.DEFAULT_LAYOUT)
 
         self.content_parser = ContentParser()
-        self.template_renderer = TemplateRenderer(self.template_dir)
         self.custom_collections: List[Callable] = []
 
         self.markdown_files = markdown_files
-
-        if CUSTOM_FILTER_REGISTRY:
-            self.template_renderer.add_filters(CUSTOM_FILTER_REGISTRY)
 
         if CUSTOM_COLLECTION_REGISTRY:
             self.custom_collections.extend(CUSTOM_COLLECTION_REGISTRY)
@@ -373,7 +373,6 @@ class PyJan26:
             render_page(page_data, page_num)
 
     def generate_site(self):
-        self.template_renderer.build_custom_filters()
         collections = self.build_collections()
 
         self.render_collections(collections)
