@@ -349,7 +349,7 @@ class PyJan26:
 
         paginated_items = collections.get(paginated.get('items'), [])
         page_size = paginated.get('size', settings.PAGE_SIZE)
-        alias = paginated.get('alias', f'paginated{collection_name.title()}')
+        alias = paginated.get('alias', paginated.get('items'))
         paginated_list = paginate(paginated_items, page_size)
         total_pages = len(paginated_list)
         page_numbers= list(range(1, total_pages + 1))
@@ -377,7 +377,8 @@ class PyJan26:
             }
 
             if settings.DEBUG:
-                print(f'RENDER_PAGINATED: page_data: {page_data}')
+                print(f'RENDER_PAGINATED: page_data:')
+                pprint.pprint(page_data)
 
             render_page(page_data, page_num)
 
