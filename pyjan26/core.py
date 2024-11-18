@@ -1,3 +1,4 @@
+import pprint
 import os
 import pkg_resources
 import shutil
@@ -188,7 +189,7 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
 
     # Render Markdown HTML content
     html_content = render_string(
-            markdown.markdown(items['content'], 
+            markdown.markdown(items['content']), 
             context
         )
     
@@ -243,15 +244,16 @@ class PyJan26:
 
     def build_custom_collections(self, collections: Dict[str, Any]) -> Dict[str, Any]:
         # Build collections using custom collection functions
+        custom_names: List[str] = []
         for function in self.custom_collections:
             custom_collections = function(collections)
             for name, items in custom_collections.items():
+                custom_names.append(name)
                 if isinstance(items, list):
                     collections.setdefault(name, []).extend(items)
                 else:
-                    collections.setdefault(name, items)
-
-        return collections
+                    collections.setdefault(name, items) #if a non list
+        return collections, custom_names
 
     def build_collections(self) -> Dict[str, Any]:
         #markdown_files = get_markdown_files(self.content_dir)
@@ -265,7 +267,8 @@ class PyJan26:
                 **markdown_data_dict, 
                 **frontmatter_data.to_dict(),
                 'layout': frontmatter_data.get('layout', self.default_layout),
-                'base_name': os.path.basename(markdown_file)
+                'base_name': os.path.basename(markdown_file),
+                'name': os.path.splitext(os.path.basename(markdown_file))[0],
             }
 
             if collection_name not in collections['collections']:
@@ -276,12 +279,17 @@ class PyJan26:
 
         collections.update({'settings' : settings_variables})
 
-        collections['collections'] = self.build_custom_collections(collections['collections'])
+        collections['collections'], collections['custom_collection_names']  = self.build_custom_collections(collections['collections'])
+
+        if settings.DEBUG:
+            print(f'BUILD COLLECTIONS:')
+            pprint.pprint(collections)
 
         return collections
 
     def render_collections(self, objs: Dict[str, Any]) -> None:
         collections = objs.get('collections', {})
+        custom_collection_names = objs.get('custom_collection_names', {})
         settings2 = objs.get('settings', {})
         skip_next = None
 
@@ -308,7 +316,8 @@ class PyJan26:
                                 'items': item,
                                 'out_dir': out_dir
                             }
-                            render_page(page_data)
+                            if not collection_name in custom_collection_names:
+                                render_page(page_data)
     
 
     def get_pagination_metadata(self, out_dir, page_num, items, collection_name, total_pages, page_numbers, page_items):
