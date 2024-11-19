@@ -380,6 +380,12 @@ class PyJan26:
                 print(f'RENDER_PAGINATED: page_data:')
                 pprint.pprint(page_data)
 
+            # to provide default index.html, for ex. posts/index.html
+            # its a equivalent of posts/1/index.html 
+            if page_num == 1:
+                page_data['out_dir'] = out_dir
+                render_page(page_data, None)
+
             render_page(page_data, page_num)
 
     def generate_site(self):
