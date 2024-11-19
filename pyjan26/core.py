@@ -296,7 +296,7 @@ class PyJan26:
         for collection_name, items in collections.items():
             for item in items:
                 if isinstance(item, dict) and item.get('base_name'):
-                    out_dir = item.get('out_dir')
+                    out_dir = item.get('permalink')
                     for pre_condition, custom_page_fn in CUSTOM_PAGE_REGISTRY.items():
                         if item.get(pre_condition):
                             result = custom_page_fn(item, collection_name, collections, settings, out_dir=out_dir)
@@ -375,6 +375,8 @@ class PyJan26:
                 'pagination': pagination_metadata,
                 'out_dir': out_dir2
             }
+
+            render_page(page_data, page_num)
 
             if settings.DEBUG:
                 print(f'RENDER_PAGINATED: page_data:')

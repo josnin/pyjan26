@@ -169,17 +169,17 @@ def custom_page1(*args, **kwargs):
     Custom page rendering function.
     """
     item, collection_name, collections, settings = args
-    out_dir = kwargs.get('out_dir')
+    permalink = kwargs.get('permalink')
 
     # render jinja variable
-    if out_dir:
-        out_dir = render_string(out_dir, item)
+    if permalink:
+        permalink = render_string(permalink, item)
 
     page_data = {
         'collection_name': collection_name,
         'collections': collections,
         'items': item,
-        'out_dir': out_dir
+        'permalink': permalink
     }
 
     render_page(page_data)
