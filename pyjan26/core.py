@@ -387,6 +387,7 @@ class PyJan26:
             # its a equivalent of posts/1/index.html 
             if page_num == 1:
                 print(f'RENDER_PAGINATED: collection_name {collection_name} w index.html equivalent of page_num 1')
+                page_data['permalink'] = None #to make sure it will only generate index.html til collection folder level
                 render_page(page_data, None)
 
 
