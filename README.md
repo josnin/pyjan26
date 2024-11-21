@@ -62,7 +62,7 @@ To configure pagination, add the following YAML front matter to your content fil
 layout: custom_template.html   # Specify the layout template
 title: Blog Post 1                  # Set the title of the page
 paginated:                     # Configure pagination
-  items: blogs                  # Specify the collections or  this can be a sub folder under _contents, such as `blogs`
+  data: blogs                  # Specify the collections 
   size: 10                      # Set the number of items per page
   alias: myblogs                # Set a custom alias for the paginated items
 ```

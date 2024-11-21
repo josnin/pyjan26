@@ -175,11 +175,7 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
     pagination = page_data.get('pagination', {})
     page_items = page_data.get('page_items', {})
     alias = page_data.get('alias')
-
-    if items:
-        permalink = items.get('permalink')
-
-
+    permalink = page_data.get('permalink')
 
     context = {
         **items,
@@ -300,9 +296,11 @@ class PyJan26:
         for collection_name, items in collections.items():
             for item in items:
                 if isinstance(item, dict) and item.get('base_name'):
+                    permalink = item.get('permalink')
+
                     for pre_condition, custom_page_fn in CUSTOM_PAGE_REGISTRY.items():
                         if item.get(pre_condition):
-                            result = custom_page_fn(item, collection_name, collections, settings2)
+                            result = custom_page_fn(item, collection_name, collections, settings2, permalink)
                             skip_next = result.get('skip_next')
                             
 
@@ -310,13 +308,16 @@ class PyJan26:
                     # skip other condition w/in the same page
                     if skip_next in (None, False):
                         if item.get('paginated'):
-                            self.render_paginated_collection(item, collection_name, collections, settings2)
+                            self.render_paginated_collection(item, collection_name, collections, settings2, permalink)
                         else:
+                            if permalink:
+                                permalink =  render_string(permalink, item)
                             page_data = {
                                 'collection_name': collection_name, 
                                 'collections': collections,  
                                 'settings': settings2, 
                                 'items': item,
+                                'permalink': permalink
                             }
                             if not collection_name in custom_collection_names:
                                 render_page(page_data)
@@ -328,14 +329,14 @@ class PyJan26:
             # it will generate but will not make sense & be useful for diff naming
             permalink =  render_string(permalink, { **page_items[0], **items } )
             permalink = f'{collection_name}/{permalink}'
-            page_number_links = [{ 'page_number': page_number, 'url': f'/{permalink}/{page_number}' } for page_number in page_numbers]
+            page_number_links = [{ 'page_number': page_number, 'url': f'/{permalink}/{page_number}/' } for page_number in page_numbers]
         else:
-            page_number_links = [{ 'page_number': page_number, 'url': f'/{collection_name}/{page_number}' } for page_number in page_numbers]
+            page_number_links = [{ 'page_number': page_number, 'url': f'/{collection_name}/{page_number}/' } for page_number in page_numbers]
 
         prev_page_num = page_num - 1 if page_num > 1 else None
         next_page_num = page_num + 1 if page_num < total_pages else None
-        prev_page_url = f"/{permalink}/{prev_page_num}" if permalink and prev_page_num else f"/{collection_name}/{prev_page_num}" if prev_page_num else None
-        next_page_url = f"/{permalink}/{next_page_num}" if permalink and next_page_num else f"/{collection_name}/{next_page_num}" if next_page_num else None
+        prev_page_url = f"/{permalink}/{prev_page_num}/" if permalink and prev_page_num else f"/{collection_name}/{prev_page_num}/" if prev_page_num else None
+        next_page_url = f"/{permalink}/{next_page_num}/" if permalink and next_page_num else f"/{collection_name}/{next_page_num}/" if next_page_num else None
 
         pagination = {
             'page_number': page_num,
@@ -346,26 +347,22 @@ class PyJan26:
         }
         return pagination
 
-    def render_paginated_collection(self, items, collection_name, collections, settings2):
+    def render_paginated_collection(self, items, collection_name, collections, settings2, permalink):
         paginated = items.get('paginated', {})
 
-        paginated_items = collections.get(paginated.get('items'), [])
+        paginated_items = collections.get(paginated.get('data'), [])
         page_size = paginated.get('size', settings.PAGE_SIZE)
-        alias = paginated.get('alias', paginated.get('items'))
+        alias = paginated.get('alias', paginated.get('data'))
         paginated_list = paginate(paginated_items, page_size)
         total_pages = len(paginated_list)
         page_numbers = list(range(1, total_pages + 1))
-        permalink = items.get('permalink')
-
 
         for page_num, page_items in enumerate(paginated_list, start=1):
             #print(f"Page {page_num}: {page_items}")
 
-            # Generate URLs for each page_item
-            # better to define it directly in template?
-            #page_items_w_urls, out_dir2 = self.generate_url(out_dir, page_num, page_items, collection_name)
-
-            pagination_metadata = self.get_pagination_metadata(permalink, page_num, items, collection_name, total_pages, page_numbers, page_items)
+            permalink2 = None
+            if permalink:
+                permalink2 =  render_string(permalink, page_items[0] )
 
 
             page_data = {
@@ -376,7 +373,7 @@ class PyJan26:
                 'alias': alias,
                 'page_items': page_items, 
                 'pagination': pagination_metadata,
-                'out_dir': out_dir2
+                'permalink': permalink2
             }
 
             print(f'RENDER_PAGINATED: collection_name {collection_name} w page_num {page_num}')
