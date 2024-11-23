@@ -117,7 +117,7 @@ STATIC_PATHS = [
 ```
 Adjust the paths as needed to include directories or specific files you want to copy.
 
-# Extending Functional Using Plugins
+# Extending Functionality Using Plugins
 
 To extend the functionality of your site, follow these steps to use plugins:
 
