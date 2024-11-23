@@ -7,6 +7,7 @@ import glob
 import markdown
 import frontmatter  # type: ignore
 from importlib import import_module
+import importlib.resources as resources
 from jinja2 import Environment, FileSystemLoader, BaseLoader
 from typing import List, Dict, Any, Union, Callable, Tuple
 from pyjan26.registry import (
@@ -21,6 +22,28 @@ settings = import_module(settings_module) # type: ignore
 
 # Get only variables from settings module
 settings_variables = {key: value for key, value in settings.__dict__.items() if not key.startswith('__')}
+
+def copy_plugin_files(plugin_paths: List[str], output_directory: str) -> None:
+    """
+    Copy plugin template/static files specified in plugin_paths to the output_directory.
+    
+    Parameters:
+        plugin_paths (list): A list of paths to files or directories.
+        output_directory (str): The directory where files will be copied.
+    """
+    for plugin_folder in settings.PLUGIN_LOOKUP_FOLDERS:
+        for path in plugin_paths:
+            source_path = resources.path(path, plugin_folder)
+            destination_path = output_directory
+            
+            if os.path.isfile(source_path):
+                os.makedirs(destination_path, exist_ok=True)
+                shutil.copy(source_path, destination_path)
+            elif os.path.isdir(source_path):
+                shutil.copytree(source_path, destination_path, dirs_exist_ok=True)
+
+            print(f'PLUGIN {plugin_folder.upper()} FILES: source_path: {source_path}')
+            print(f'PLUGIN {plugin_folder.upper()} FILES: destination_path: {destination_path}')
 
 def copy_static_files(static_paths: List[str], output_directory: str) -> None:
     """
@@ -109,8 +132,8 @@ class TemplateRenderer:
 class FileGenerator:
     def generate(self, out_dir: str, final_path: str, rendered_template: str) -> None:
 
-
-        os.makedirs(out_dir, exist_ok=True)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
 
         with open(final_path, 'w', encoding='utf-8') as f:
             f.write(rendered_template)
@@ -139,34 +162,31 @@ def generate_file(out_dir: str, final_out: str, rendered_template: str) -> None:
     return file_generator.generate(out_dir, final_out, rendered_template)
 
 def get_output_directory(collection_name: str, permalink: str | None, page_num: int | None, items: Dict[str, Any]) -> str:
-    output_dir = settings.OUTPUT_DIR
 
-    #TODO: added condition first if condition should not goes for item w pagination 
     if permalink and not page_num:
         if collection_name != settings.CONTENT_DIR: # make sure its folder collections
-            output_dir = os.path.join(output_dir, collection_name, permalink)
+            output_dir = os.path.join(collection_name, permalink)
         else:
-            output_dir = os.path.join(output_dir, permalink)
+            output_dir = permalink
         output_dir = render_string(output_dir, items)
     elif permalink and page_num:
-        output_dir = os.path.join(output_dir, collection_name, permalink, str(page_num))
+        output_dir = os.path.join(collection_name, permalink, str(page_num))
     elif page_num:
-        output_dir = os.path.join(output_dir, collection_name, str(page_num))
+        output_dir = os.path.join(collection_name, str(page_num))
     else:
-        base_name = os.path.splitext(items['base_name'])[0]
+        base_name = items['name']
         if base_name == 'index' and collection_name == settings.CONTENT_DIR:
-            output_dir = settings.OUTPUT_DIR
+            output_dir = ''
         elif base_name == 'index':
-            output_dir = os.path.join(output_dir, collection_name)
+            output_dir = collection_name
         elif collection_name == settings.CONTENT_DIR:
-            output_dir = os.path.join(output_dir, base_name)
+            output_dir = base_name
         else:
-            output_dir = os.path.join(output_dir, collection_name, base_name)
+            output_dir = os.path.join(collection_name, base_name)
     
     return output_dir
 
 def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) -> None:
-    #template_renderer = TemplateRenderer(settings.TEMPLATE_DIR)    
 
     collections = page_data.get('collections', {})
     items = page_data.get('items', {})
@@ -176,22 +196,6 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
     page_items = page_data.get('page_items', {})
     alias = page_data.get('alias')
     permalink = page_data.get('permalink')
-
-    context = {
-        **items,
-        'collections': collections, 
-        'settings': settings2,
-        'pagination': pagination,
-    }
-    if page_items:
-        context[alias] = page_items
-
-    # Render Markdown HTML content
-    html_content = render_string(
-            markdown.markdown(items['content']), 
-            context
-        )
-    
     out_dir2 = get_output_directory(collection_name, permalink, page_num, items)
 
     if is_filepath(out_dir2):
@@ -201,7 +205,22 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
         out_dir2 = '/'.join(out_dir2.split('/')[:-1])
     else:
         final_out = os.path.join(out_dir2, 'index.html')
-    #final_out = f'{out_dir2}/index.html'
+    final_out = os.path.join(settings.OUTPUT_DIR, final_out)
+
+    context = {
+        **items,
+        'collections': collections, 
+        'settings': settings2,
+        'pagination': pagination,
+    }
+    if page_items and alias:
+        context[alias] = page_items
+
+    # Render Markdown HTML content
+    html_content = render_string(
+            markdown.markdown(items['content']), 
+            context
+        )
 
 
     rendered_template = render_template(
@@ -215,6 +234,7 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
 
     print(f'RENDER_PAGE: output_dir {out_dir2}  output file {final_out}')
     generate_file(out_dir2, final_out, rendered_template)
+
 
 def is_filepath(out_dir: str):
     _, ext = os.path.splitext(out_dir)
@@ -235,12 +255,6 @@ class PyJan26:
 
         if CUSTOM_COLLECTION_REGISTRY:
             self.custom_collections.extend(CUSTOM_COLLECTION_REGISTRY)
-
-    #def add_filters(self, custom_filters: List[Callable]) -> None:
-    #    self.template_renderer.add_filters(custom_filters)
-
-    #def add_collections(self, custom_function: List[Callable]) -> None:
-    #    self.custom_collections.extend(custom_function)
 
     def build_custom_collections(self, collections: Dict[str, Any]) -> Dict[str, Any]:
         # Build collections using custom collection functions
@@ -291,12 +305,12 @@ class PyJan26:
         collections = objs.get('collections', {})
         custom_collection_names = objs.get('custom_collection_names', {})
         settings2 = objs.get('settings', {})
-        skip_next = None
 
         for collection_name, items in collections.items():
             for item in items:
                 if isinstance(item, dict) and item.get('base_name'):
                     permalink = item.get('permalink')
+                    skip_next = None
 
                     for pre_condition, custom_page_fn in CUSTOM_PAGE_REGISTRY.items():
                         if item.get(pre_condition):
@@ -327,7 +341,6 @@ class PyJan26:
         if permalink: 
             # if paginated, page size is 1 , and each url's has different naming then it wont make sense to have a pagination metadata
             # it will generate but will not make sense & be useful for diff naming
-            permalink =  render_string(permalink, { **page_items[0], **items } )
             permalink = f'{collection_name}/{permalink}'
             page_number_links = [{ 'page_number': page_number, 'url': f'/{permalink}/{page_number}/' } for page_number in page_numbers]
         else:
@@ -364,6 +377,7 @@ class PyJan26:
             if permalink:
                 permalink2 =  render_string(permalink, page_items[0] )
 
+            pagination_metadata = self.get_pagination_metadata(permalink2, page_num, items, collection_name, total_pages, page_numbers, page_items)
 
             page_data = {
                 'collection_name': collection_name,

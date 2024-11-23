@@ -20,6 +20,7 @@ Generate static site:
 python -m pyjan26.main g
 ```
 
+
 To run your generated static site :
 
 ```bash
@@ -116,29 +117,58 @@ STATIC_PATHS = [
 ```
 Adjust the paths as needed to include directories or specific files you want to copy.
 
-## Custom Collections
-Define custom collections in custom_collections.py:
+## Extending Functional Using Plugins
+
+To extend the functionality of your site, follow these steps to use plugins:
+
+1. Install the Plugin
+Install the plugin using pip:
 
 ```python
-# custom_collections.py
-
-from pyjan26.registry import register_custom_collections
-
-def tag_list(collections):
-    """
-    Define a list of tags for the 'tags' collection.
-    """
-    return {'tags': [{'tag': 'javascript'}, {'tag': 'python'}]}
-
-# Register custom collections
-register_custom_collections([tag_list])
+pip install <plugin-name>
 ```
 
-## Custom Filters
-Define custom filters in custom_filters.py:
+Alternatively, include your plugin as a Python module in your project.
+
+2. Register the Plugin Module in settings.py
+Add the plugin module to the PLUGIN_MODULES list in your settings:
 
 ```python
-# custom_filters.py
+PLUGIN_MODULES = ['myplugins']
+```
+
+Add or Replace 'myplugins' with the name of your plugin module
+
+## Creating Your Own Plugin
+To create your own plugin, follow these steps
+
+1. Register Custom Features
+Add custom functionality 
+
+### Custom Collections
+Define custom collections in my_custom_plugin.py:
+
+```python
+from pyjan26.registry import register_custom_collections
+
+def blog_collections(collections):
+    return {'blogs': list(filter(lambda post: post['name'] != 'index', collections.get('posts'))) }
+
+def all_tags_collections(collections):
+    #depdent on blog_collections
+    return {'all_tags': list(tag for blog in collections.get('blogs') for tag in blog['tags'])}
+
+#register custom collections
+register_custom_collections([
+    blog_collections,
+    all_tags_collections
+])
+```
+
+### Custom Filters
+Define custom filters in the same file my_custom_plugin.py:
+
+```python
 
 from pyjan26.registry import register_custom_filters
 
@@ -155,50 +185,69 @@ To use the custom filter in your templates, follow this syntax:
 {{ content | capitalize_words }}
 ```
 
-## Custom Page Rendering
-Define custom page rendering in custom_page.py:
+### Custom Page Rendering
+Define custom page rendering in the same file my_custom_plugin.py:
 
 ```python
-# custom_page.py
 
 from pyjan26.registry import register_custom_page
 from pyjan26.core import render_page, render_string
 
-def custom_page1(*args, **kwargs):
-    """
-    Custom page rendering function.
-    """
-    item, collection_name, collections, settings = args
-    permalink = kwargs.get('permalink')
+def repeat_page(*args, **kwargs):
 
-    # render jinja variable
-    if permalink:
-        permalink = render_string(permalink, item)
+    item, collection_name, collections, settings, permalink = args
 
-    page_data = {
-        'collection_name': collection_name,
-        'collections': collections,
-        'items': item,
-        'permalink': permalink
-    }
+    for data1 in collections.get(item.get('data')):
+        pl = None
+        if permalink:
+            pl =  render_string(permalink, { 'tag': data1 } )
 
-    render_page(page_data)
+        item['page_items'] = data1
 
-    return { 'skip_next': False }
+        page_data = {
+            'collection_name': collection_name, 
+            'collections': collections,  
+            'settings': settings, 
+            'items': item,
+            'permalink': pl
+        }
 
+        render_page(page_data)
 
-register_custom_page([custom_page1])
+    return { 'skip_next': True }
 ```
 
-To apply custom page rendering to a content markdown file, add custom_page1: True to the YAML front matter:
+To apply custom page rendering to a content markdown file, add repeat_page: True to the YAML front matter:
 
 ```yaml
-layout: custom_template.html   # Specify the layout template
-title: Post 1  
-custom_page1: True                  # Apply custom page rendering
+repeat_page: True #Apply custom page rendering
+data: all_tags
+layout: base.html
+permalink: '{{ tag }}'
 ```
 
-This instructs PyJan26 to use the custom_page1 function for rendering this specific content. Adjust metadata as needed.
+This instructs PyJan26 to use the repeat_page function for rendering this specific content. Adjust metadata as needed.
+
+2. Include Templates and Static Files
+To package templates and static files within your plugin:
+* Ensure your plugin has the required files in appropriate directories(templates, static, etc.)
+* Update your setup.py to include these files
+
+3. Example setup.py:
+```python
+from setuptools import setup, find_packages
+
+setup(
+    name="my_custom_plugin",
+    version="1.0.0",
+    packages=find_packages(),
+    package_data={
+	"my_custom_plugin": ["templates/*", "static/*"] #Include templates and static files
+    }
+)
+```
+
+This will include your templates and static folders in the plugin package
 
 
 ## Global Variable

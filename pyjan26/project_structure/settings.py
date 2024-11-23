@@ -21,4 +21,8 @@ STATIC_PATHS = [
 
 PAGE_SIZE = 10
 
+# Define plugin folders to copy, if they exist
+PLUGIN_LOOKUP_FOLDERS = ["templates", "static"]
 
+# List of plugin modules to load
+PLUGIN_MODULES = []

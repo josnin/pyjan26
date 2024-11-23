@@ -25,8 +25,7 @@ def start_project(project_name):
         package_path = os.path.dirname(__file__)
         
         # Copy default files from package to project directory
-        for filename in ["settings.py", "custom_collections.py", "custom_filters.py", "custom_pages.py",
-        "_content/index.md", "_templates/base.html"]:
+        for filename in ["settings.py", "_content/index.md", "_templates/base.html"]:
             file_content = pkgutil.get_data(__name__, f"project_structure/{filename}").decode("utf-8")
             file_path = os.path.join(project_name, filename)
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -40,23 +39,20 @@ def start_project(project_name):
 
 def main():
     parser = argparse.ArgumentParser(description="PyJan26 Command Line Interface")
-    parser.add_argument("command", choices=["s", "g"], help="Command to execute: 's' for startproject, 'g' for generate")
+    parser.add_argument("command", choices=["s", "g", "c"], help="Command to execute: 's' for startproject, 'g' for generate, 'c' for copy template/static plugins")
     parser.add_argument("project_name_or_files", nargs="?", help="Project Name (only for 's' command) or Include files to generate (only for 'g' command)")
 
     args = parser.parse_args()
 
     if args.command == "s":
         start_project(args.project_name_or_files)
+    elif args.command == "c":
+        from pyjan26.core import copy_plugin_files, settings
+        copy_plugin_files(settings.PLUGIN_MODULES, settings.CONTENT_DIR)
     elif args.command == "g":
-        custom_pages_module = os.environ.setdefault('PYJAN26_PAGES_MODULE', 'custom_pages')
-        collections_module = os.environ.setdefault('PYJAN26_COLLECTIONS_MODULE', 'custom_collections')
-        filters_module = os.environ.setdefault('PYJAN26_FILTERS_MODULE', 'custom_filters')
-
-        import_module(custom_pages_module)
-        import_module(collections_module)
-        import_module(filters_module)
-
-        from pyjan26.core import PyJan26, get_markdown_files
+        from pyjan26.core import PyJan26, get_markdown_files, settings
+        for plugin in settings.PLUGIN_MODULES:
+            import_module(plugin)
 
         files = get_markdown_files(args.project_name_or_files)
         gen = PyJan26(files)
