@@ -1,5 +1,5 @@
 # PyJan26
-PyJan26 is a static site generator written in Python. It allows you to generate static websites from templates and content files, with support for pagination, custom pages, custom filters, and custom collections.
+PyJan26 is a static site generator written in Python. It allows you to generate static websites from templates and content files, with support for pagination, and extendable using plugins.
 
 ## Install PyJan26 using pip:
 
@@ -117,7 +117,7 @@ STATIC_PATHS = [
 ```
 Adjust the paths as needed to include directories or specific files you want to copy.
 
-## Extending Functional Using Plugins
+# Extending Functional Using Plugins
 
 To extend the functionality of your site, follow these steps to use plugins:
 
@@ -139,13 +139,19 @@ PLUGIN_MODULES = ['myplugins']
 
 Add or Replace 'myplugins' with the name of your plugin module
 
+3. Copy templates/static plugin files 
+
+```bash
+python -m pyjan26.main c
+```
+
 ## Creating Your Own Plugin
 To create your own plugin, follow these steps
 
 1. Register Custom Features
 Add custom functionality 
 
-### Custom Collections
+#### Custom Collections
 Define custom collections in my_custom_plugin.py:
 
 ```python
@@ -165,7 +171,7 @@ register_custom_collections([
 ])
 ```
 
-### Custom Filters
+#### Custom Filters
 Define custom filters in the same file my_custom_plugin.py:
 
 ```python
@@ -185,7 +191,7 @@ To use the custom filter in your templates, follow this syntax:
 {{ content | capitalize_words }}
 ```
 
-### Custom Page Rendering
+#### Custom Page Rendering
 Define custom page rendering in the same file my_custom_plugin.py:
 
 ```python
