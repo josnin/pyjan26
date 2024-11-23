@@ -139,7 +139,8 @@ PLUGIN_MODULES = ['myplugins']
 
 Add or Replace 'myplugins' with the name of your plugin module
 
-3. Copy templates/static plugin files 
+3. Copy templates/static plugin files
+To copy templates or static files provided by a plugin, run the following command
 
 ```bash
 python -m pyjan26.main c
@@ -221,6 +222,10 @@ def repeat_page(*args, **kwargs):
         render_page(page_data)
 
     return { 'skip_next': True }
+
+#Register the custom page
+register_custom_pages([repeat_page])
+
 ```
 
 To apply custom page rendering to a content markdown file, add repeat_page: True to the YAML front matter:
