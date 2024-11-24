@@ -1,0 +1,39 @@
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+    <url>
+      <loc>https://pyjan26.dev/sitemap/</loc>
+      <changefreq>monthly</changefreq>
+      <priority>0.8</priority>
+    </url>
+  
+    <url>
+      <loc>https://pyjan26.dev/posts/first-blog-post/</loc>
+      <changefreq>monthly</changefreq>
+      <priority>0.8</priority>
+    </url>
+  
+    <url>
+      <loc>https://pyjan26.dev/posts/second-blog-post/</loc>
+      <changefreq>monthly</changefreq>
+      <priority>0.8</priority>
+    </url>
+  
+    <url>
+      <loc>https://pyjan26.dev/posts/</loc>
+      <changefreq>monthly</changefreq>
+      <priority>0.8</priority>
+    </url>
+  
+    <url>
+      <loc>https://pyjan26.dev/tags/tag/</loc>
+      <changefreq>monthly</changefreq>
+      <priority>0.8</priority>
+    </url>
+  
+    <url>
+      <loc>https://pyjan26.dev/tags/</loc>
+      <changefreq>monthly</changefreq>
+      <priority>0.8</priority>
+    </url>
+  
+</urlset>
