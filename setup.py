@@ -9,7 +9,6 @@ setup(
     package_data={'pyjan26': ['project_structure/_content/*.md', 'project_structure/_templates/*.html']},
     install_requires=[
         'Jinja2>=3.1.3',
-        'jinja2_markdown>=0.0.3',
         'python-frontmatter==1.1.0'
     ],
     author='Josnin',

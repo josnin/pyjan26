@@ -1,8 +1,8 @@
 ---
 title: "Second Blog Post"
-description: This is an example second blog post
+description: This is an example second blog post for Javascript
 date: 2024-01-21
-tags: ["tag3", "tag4"]
+tags: ["Javascript"]
 ---
 
 # Second Blog

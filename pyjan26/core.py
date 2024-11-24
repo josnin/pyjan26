@@ -8,7 +8,6 @@ import markdown
 import frontmatter  # type: ignore
 from importlib import import_module
 import importlib.resources as resources
-from jinja2 import Environment, FileSystemLoader, BaseLoader, DebugUndefined
 from typing import List, Dict, Any, Union, Callable, Tuple
 from pyjan26.registry import (
     CUSTOM_PAGE_REGISTRY, CUSTOM_COLLECTION_REGISTRY, 
@@ -55,19 +54,21 @@ def copy_static_files(static_paths: List[str], output_directory: str) -> None:
     """
     #TODO: use wild cards??  ex. */robots.txt ?
     for path in static_paths:
-        source_path = os.path.join(os.getcwd(), path)
+        source_path = os.path.join(os.getcwd(), settings.CONTENT_DIR, path)
         destination_path = os.path.join(output_directory, path)
 
         print(f'STATIC FILES: source_path: {source_path}')
         print(f'STATIC FILES: destination_path: {destination_path}')
         
         if os.path.isfile(source_path):
-            os.makedirs(destination_path, exist_ok=True)
+            os.makedirs(os.path.dirname(destination_path), exist_ok=True)
             shutil.copy(source_path, destination_path)
         elif os.path.isdir(source_path):
             if os.path.exists(destination_path):
                 shutil.rmtree(destination_path)  # Delete existing destination directory
             shutil.copytree(source_path, destination_path)
+        else:
+            print(f'warning: {source_path} is neither a file nor a directory!')
 
 def paginate(collection: List[Any], page_size: int) -> List[List[Any]]:
     """
@@ -103,7 +104,7 @@ class ContentParser:
 
 class TemplateRenderer:
     def __init__(self, templates_dir: str) -> None:
-        self.env = Environment(loader=FileSystemLoader(templates_dir), undefined=DebugUndefined)
+        self.env = settings.JINJA_ENVIRONMENT
 
         self.custom_filters: List[Callable] = []
 
@@ -219,7 +220,7 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
 
     # Render Markdown HTML content
     html_content = render_string(
-            markdown.markdown(items['content']), 
+            markdown.markdown(items['content'], extensions=settings.MARKDOWN_EXTENSIONS), 
             context
         )
 

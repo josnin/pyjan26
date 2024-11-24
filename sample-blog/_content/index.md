@@ -1,6 +1,8 @@
 ---
 layout: base.html
-title: "Open Source Projects and Technical Blogs"
+title: Sample Blogs for Pyjan26
 ---
 
-# Hi Im Life
+# Sample BLogs
+
+Welcome To My Sample [Blogs](http://localhost:8080/posts/) Powered by PyJan26
