@@ -20,12 +20,14 @@ STATIC_PATHS = [
     "assets", #whole directory
 ]
 
-# Define Markdown extensions here
-MARKDOWN_EXTENSIONS = []
+# Configuration for markdown
+MARKDOWN_PROCESSOR = markdown.Markdown(
+    extensions=['fenced_code', CodeHiliteExtension(linenums=True)]
+)
 
-# Define Jinja environment & extensions here
-JINJA_ENVIRONMENT = Environment(
-    loader=FileSystemLoader(TEMPLATE_DIR), 
+# Template Engine: Jinja2 by default (replaceable)
+TEMPLATE_ENGINE = Environment(
+    loader=FileSystemLoader(TEMPLATE_DIR),
     undefined=DebugUndefined
 )
 
