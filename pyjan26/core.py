@@ -36,13 +36,14 @@ def copy_plugin_files(plugin_paths: List[str], output_directory: str) -> None:
             destination_path = output_directory
             
             if os.path.isfile(source_path):
+                print(f'Copying plugin static files from {source_path} to {destination_path}...')
                 os.makedirs(destination_path, exist_ok=True)
                 shutil.copy(source_path, destination_path)
+                print('Plugin Static files copied successfully.')
             elif os.path.isdir(source_path):
+                print(f'Copying plugin static files from {source_path} to {destination_path}...')
                 shutil.copytree(source_path, destination_path, dirs_exist_ok=True)
-
-            print(f'PLUGIN {plugin_folder.upper()} FILES: source_path: {source_path}')
-            print(f'PLUGIN {plugin_folder.upper()} FILES: destination_path: {destination_path}')
+                print('Plugin Static files copied successfully.')
 
 def copy_static_files(static_paths: List[str], output_directory: str) -> None:
     """
