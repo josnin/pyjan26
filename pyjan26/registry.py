@@ -3,6 +3,10 @@ from typing import List, Dict, Any, Union, Callable, Tuple
 CUSTOM_PAGE_REGISTRY = {}
 CUSTOM_FILTER_REGISTRY = []
 CUSTOM_COLLECTION_REGISTRY = []
+POST_BUILD_REGISTRY = []
+
+def register_post_build(post_build_function: List[Callable]) -> None:
+    POST_BUILD_REGISTRY.extend(post_build_function)
 
 def register_custom_filters(custom_function: List[Callable]) -> None:
     CUSTOM_FILTER_REGISTRY.extend(custom_function)

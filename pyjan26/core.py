@@ -11,7 +11,7 @@ import importlib.resources as resources
 from typing import List, Dict, Any, Union, Callable, Tuple
 from pyjan26.registry import (
     CUSTOM_PAGE_REGISTRY, CUSTOM_COLLECTION_REGISTRY, 
-    CUSTOM_FILTER_REGISTRY
+    CUSTOM_FILTER_REGISTRY, POST_BUILD_REGISTRY
 )
 
 
@@ -56,9 +56,9 @@ def copy_static_files(static_paths: List[str], output_directory: str) -> None:
     for path in static_paths:
         source_path = os.path.join(os.getcwd(), settings.CONTENT_DIR, path)
         destination_path = os.path.join(output_directory, path)
+        print(f'Copying static files from {source_path} to {destination_path}...')
+        w_warning = False
 
-        print(f'STATIC FILES: source_path: {source_path}')
-        print(f'STATIC FILES: destination_path: {destination_path}')
         
         if os.path.isfile(source_path):
             os.makedirs(os.path.dirname(destination_path), exist_ok=True)
@@ -69,6 +69,10 @@ def copy_static_files(static_paths: List[str], output_directory: str) -> None:
             shutil.copytree(source_path, destination_path)
         else:
             print(f'warning: {source_path} is neither a file nor a directory!')
+            w_warning = True
+
+        if not w_warning:
+            print('Static files copied successfully.')
 
 def paginate(collection: List[Any], page_size: int) -> List[List[Any]]:
     """
@@ -234,7 +238,7 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
             }
     )
 
-    print(f'RENDER_PAGE: output_dir {out_dir2}  output file {final_out}')
+    print(f'Generating page at {final_out}')
     generate_file(out_dir2, final_out, rendered_template)
 
 
@@ -272,6 +276,7 @@ class PyJan26:
         return collections, custom_names
 
     def build_collections(self) -> Dict[str, Any]:
+        print('Building collections...')
         collections: Dict[str, Dict] = { 'collections': {} }
 
         for markdown_file in self.markdown_files:
@@ -301,9 +306,9 @@ class PyJan26:
 
         collections['collections'], collections['custom_collection_names']  = self.build_custom_collections(collections['collections'])
 
-        print(f'BUILD COLLECTIONS:')
         if settings.DEBUG:
             pprint.pprint(collections)
+        print('Collections build completed.')
 
         return collections
 
@@ -339,6 +344,7 @@ class PyJan26:
                             }
                             if not collection_name in custom_collection_names:
                                 render_page(page_data)
+        print('Page build completed.')
     
 
     def get_pagination_metadata(self, permalink2, page_num, items, collection_name, total_pages, page_numbers, page_items):
@@ -394,7 +400,6 @@ class PyJan26:
                 'permalink2': permalink2
             }
 
-            print(f'RENDER_PAGINATED: collection_name {collection_name} w page_num {page_num}')
             if settings.DEBUG:
                 pprint.pprint(page_data)
 
@@ -404,17 +409,31 @@ class PyJan26:
             # to provide default index.html, for ex. posts/index.html
             # its a equivalent of posts/1/index.html 
             if page_num == 1:
-                print(f'RENDER_PAGINATED: collection_name {collection_name} w index.html equivalent of page_num 1')
                 page_data['permalink'] = None #to make sure it will only generate index.html til collection folder level
                 render_page(page_data, None)
 
 
     def generate_site(self):
+        print('Building site...')
         collections = self.build_collections()
 
         self.render_collections(collections)
         
         copy_static_files(settings.STATIC_PATHS, self.output_dir)
+        print("Site build complete.")
+
+
+        if POST_BUILD_REGISTRY:
+            print("Running post-build hooks...")
+            for post_build_fn in POST_BUILD_REGISTRY:
+                print(f"Running post-build hook: {post_build_fn}")
+                post_build_fn()
+            print("All post-build hooks executed.")
+        
+
+
+        
+
 
 
 
