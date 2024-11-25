@@ -1,5 +1,5 @@
 from jinja2 import Environment, FileSystemLoader, BaseLoader, DebugUndefined
-from markdown.extensions.codehilite import CodeHiliteExtension
+import markdown
 
 # Debugger
 DEBUG = False
@@ -22,7 +22,7 @@ STATIC_PATHS = [
 
 # Configuration for markdown
 MARKDOWN_PROCESSOR = markdown.Markdown(
-    extensions=['fenced_code', CodeHiliteExtension(linenums=True)]
+    extensions=[]
 )
 
 # Template Engine: Jinja2 by default (replaceable)
