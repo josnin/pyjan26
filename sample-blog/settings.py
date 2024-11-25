@@ -1,4 +1,5 @@
 from jinja2 import Environment, FileSystemLoader, BaseLoader, DebugUndefined
+import markdown
 from markdown.extensions.codehilite import CodeHiliteExtension
 
 # Debugger
