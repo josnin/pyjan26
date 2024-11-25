@@ -104,7 +104,7 @@ class ContentParser:
 
 class TemplateRenderer:
     def __init__(self, templates_dir: str) -> None:
-        self.env = settings.JINJA_ENVIRONMENT
+        self.env = settings.TEMPLATE_ENGINE
 
         self.custom_filters: List[Callable] = []
 
@@ -220,7 +220,7 @@ def render_page(page_data: Dict[str, Any], page_num: Union[int, None] = None) ->
 
     # Render Markdown HTML content
     html_content = render_string(
-            markdown.markdown(items['content'], extensions=settings.MARKDOWN_EXTENSIONS), 
+            settings.MARKDOWN_PROCESSOR.convert(items['content']),
             context
         )
 
