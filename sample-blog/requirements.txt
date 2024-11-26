@@ -1,0 +1,8 @@
+Jinja2==3.1.4
+libsass==0.23.0
+Markdown==3.7
+MarkupSafe==3.0.2
+Pygments==2.18.0
+pyjan26==0.12
+python-frontmatter==1.1.0
+PyYAML==6.0.2

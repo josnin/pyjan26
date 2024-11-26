@@ -1,11 +1,12 @@
 import os
 import glob
-from pyjan26.registry import register_custom_pages, register_custom_filters, register_custom_collections
-from pyjan26.core import render_page, render_string, settings, get_output_directory, generate_file
+from pyjan26.registry import register_custom_pages, register_custom_filters, register_custom_collections, register_post_build
+from pyjan26.core import render_page, render_string, settings, get_output_directory, generate_file, copy_static_files
 
 ### START Custom collections ########
 def sitemap_collections(collections):
     sitemap = []
+    print('Building sitemap collections...')
     for sitemap_conf in settings.SITEMAP_CONFIG:
         for item in collections.get(sitemap_conf['collection']):
             permalink1 = item.get('permalink')
@@ -27,10 +28,12 @@ def sitemap_collections(collections):
     return {'sitemap': sitemap }
 
 def blog_collections(collections):
+    print('Building blogs collections...')
     return {'blogs': list(filter(lambda post: post['name'] != 'index', collections.get('posts'))) }
 
 def all_tags_collections(collections):
     #depdent on blog_collections
+    print('Building all_tags collections...')
     return {'all_tags': list(tag for blog in collections.get('blogs') for tag in blog['tags'])}
 
 
@@ -81,8 +84,8 @@ def sitemap_page(*args, **kwargs):
         )
 
     final_out = os.path.join(settings.OUTPUT_DIR, 'sitemap.xml')
+    print(f'Generating page at {final_out}')
     generate_file(f'{settings.OUTPUT_DIR}/', final_out, xml_content)
-    print(f'RENDER SITEMAP_PAGE: output file {final_out}')
 
     return { 'skip_next': True }
 
@@ -90,3 +93,30 @@ def sitemap_page(*args, **kwargs):
 register_custom_pages([repeat_page, sitemap_page])
 
 ### END Custom Page #########
+
+
+### START Post build ########
+import sass
+def scss_to_css():
+    for pattern in settings.CSS_SCSS_PATTERNS:
+        scss_files = glob.glob(os.path.join(settings.CONTENT_DIR, pattern))
+        for scss_file in scss_files:
+            with open(scss_file, 'r') as file:
+                scss_content = file.read()
+
+            #convert scss to css using libsass
+            css_content = sass.compile(string=scss_content, output_style='expanded')
+
+            css_file = f'{os.path.splitext(scss_file)[0]}.css'
+
+            #write the scss content to output file
+            with open(css_file, 'w') as file:
+                file.write(css_content)
+        
+            print(f'SCSS generated at {css_file}')
+
+    #TODO how to exclude scss file on public? 
+    copy_static_files(settings.STATIC_PATHS, settings.OUTPUT_DIR)
+
+register_post_build([scss_to_css])
+### END Post build ########

@@ -108,8 +108,8 @@ class ContentParser:
             return frontmatter.load(f), self.load_markdown_data(markdown_file)
 
 class TemplateRenderer:
-    def __init__(self, templates_dir: str) -> None:
-        self.env = settings.TEMPLATE_ENGINE
+    def __init__(self, template_engine: Any) -> None:
+        self.env = template_engine
 
         self.custom_filters: List[Callable] = []
 
@@ -154,12 +154,12 @@ def get_markdown_files(include_files=None) -> List[str]:
     return glob.glob(os.path.join(settings.CONTENT_DIR, "**/*.md"), recursive=True)
 
 def render_string(content: str, context: Dict[str, Any]) -> str:
-    template_renderer = TemplateRenderer(settings.TEMPLATE_DIR)
+    template_renderer = TemplateRenderer(settings.TEMPLATE_ENGINE)
     results = template_renderer.render_string(content, context)
     return results
 
 def render_template(template_name: str, context: Dict[str, Any]) -> str:
-    template_renderer = TemplateRenderer(settings.TEMPLATE_DIR)
+    template_renderer = TemplateRenderer(settings.TEMPLATE_ENGINE)
     results = template_renderer.render(template_name, context)
     return results
 

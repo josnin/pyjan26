@@ -21,6 +21,7 @@ STATIC_PATHS = [
     "assets", #whole directory
 ]
 
+
 # Configuration for markdown
 MARKDOWN_PROCESSOR = markdown.Markdown(
     extensions=['fenced_code', CodeHiliteExtension(linenums=True)]
@@ -48,4 +49,5 @@ SITEMAP_CONFIG = [
     { 'collection': 'tags', 'changefreq': 'monthly', 'priority': 0.8 },
 ]
 
-
+# Define scss files to convert to css
+CSS_SCSS_PATTERNS = ['assets/*.scss']
