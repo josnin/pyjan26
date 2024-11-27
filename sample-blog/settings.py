@@ -15,12 +15,11 @@ OUTPUT_DIR = 'public'
 # Layout / Templates
 DEFAULT_LAYOUT = 'base.html'
 
-
 # Copy Static files
-STATIC_PATHS = [
-    "assets", #whole directory
+# can make use of Wildcards available in glob()
+STATIC_PATH_PATTERNS = [
+    "assets/*.css",
 ]
-
 
 # Configuration for markdown
 MARKDOWN_PROCESSOR = markdown.Markdown(
@@ -37,7 +36,12 @@ TEMPLATE_ENGINE = Environment(
 PLUGIN_LOOKUP_FOLDERS = ["templates", "static"]
 
 # List of plugin modules to load
-PLUGIN_MODULES = ['myplugins']
+PLUGIN_MODULES = [
+    'plugins.blogs_w_tags',
+    'plugins.repeat_page',
+    'plugins.sitemap',
+    'plugins.css_to_scss'
+]
 
 # Default Pagination Size
 PAGE_SIZE = 10

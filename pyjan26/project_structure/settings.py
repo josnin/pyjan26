@@ -16,8 +16,9 @@ DEFAULT_LAYOUT = 'base.html'
 
 
 # Copy Static files
-STATIC_PATHS = [
-    "assets", #whole directory
+# can make use of Wildcards available in glob()
+STATIC_PATH_PATTERNS = [
+    "assets/*.css",
 ]
 
 # Configuration for markdown

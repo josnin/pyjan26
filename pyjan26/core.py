@@ -53,24 +53,23 @@ def copy_static_files(static_paths: List[str], output_directory: str) -> None:
         static_paths (list): A list of paths to static files or directories.
         output_directory (str): The directory where static files will be copied.
     """
-    #TODO: use wild cards??  ex. */robots.txt ?
-    for path in static_paths:
-        source_path = os.path.join(os.getcwd(), settings.CONTENT_DIR, path)
-        destination_path = os.path.join(output_directory, path)
-        print(f'Copying static files from {source_path} to {destination_path}...')
-        w_warning = False
-
-        
-        if os.path.isfile(source_path):
-            os.makedirs(os.path.dirname(destination_path), exist_ok=True)
-            shutil.copy(source_path, destination_path)
-        elif os.path.isdir(source_path):
-            if os.path.exists(destination_path):
-                shutil.rmtree(destination_path)  # Delete existing destination directory
-            shutil.copytree(source_path, destination_path)
-        else:
-            print(f'warning: {source_path} is neither a file nor a directory!')
-            w_warning = True
+    w_warning = False
+    for pattern in static_paths:
+        static_files = glob.glob(os.path.join(settings.CONTENT_DIR, pattern), recursive=True)
+        for static_file in static_files:
+            if os.path.isfile(static_file):
+                destination_path = static_file.replace(settings.CONTENT_DIR, output_directory)
+                print(f'Copying static files from {static_file} to {destination_path}...')
+                os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+                shutil.copy(static_file, destination_path)
+            elif os.path.isdir(static_file):
+                destination_path = static_file.replace(settings.CONTENT_DIR, output_directory)
+                if os.path.exists(destination_path):
+                    shutil.rmtree(destination_path)  # Delete existing destination directory
+                shutil.copytree(static_file, destination_path)
+            else:
+                print(f'warning: {static_file} is neither a file nor a directory!')
+                w_warning = True
 
         if not w_warning:
             print('Static files copied successfully.')
@@ -419,8 +418,7 @@ class PyJan26:
         collections = self.build_collections()
 
         self.render_collections(collections)
-        
-        copy_static_files(settings.STATIC_PATHS, self.output_dir)
+        copy_static_files(settings.STATIC_PATH_PATTERNS, self.output_dir)
         print("Site build complete.")
 
 
