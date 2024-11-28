@@ -1,5 +1,5 @@
 # PyJan26
-PyJan26 is a static site generator written in Python. It allows you to generate static websites from templates and content files, with support for pagination, and extendable using plugins.
+PyJan26 is a static site generator written in Python. It allows you to generate static websites from templates and content files, with support for pagination, and extend using plugins.
 
 ## Install PyJan26 using pip:
 
@@ -60,7 +60,7 @@ project_directory/
 To configure pagination, add the following YAML front matter to your content files:
 
 ```yaml
-layout: custom_template.html   # Specify the layout template
+layout: base.html   # Specify the layout template
 title: Blog Post 1                  # Set the title of the page
 paginated:                     # Configure pagination
   data: blogs                  # Specify the collections 
@@ -73,8 +73,8 @@ When pagination is enabled, PyJan26 provides built-in template variables that yo
 
 ```html
 {% if myblogs %}
-  {% for blog in myblogs %}
-    <span><a href="/blog/{{ blog.name }}">{{ blog.name }}</a></span>
+  {% for post in myblogs %}
+    <span><a href="/posts/{{ post.name }}">{{ post.name }}</a></span>
   {% endfor %}
 {% endif %}
 
@@ -108,13 +108,14 @@ In this example:
 ## Copy Static Files
 To specify static files to be copied to the public directory, add them to the STATIC_PATHS variable in your configuration (settings.py):
 
-```python
 # Copy Static files
-STATIC_PATHS = [
-    "images",     # whole directory
-    "assets/robots.txt"   # specific file
+# can make use of Wildcards available in glob()
+```python
+STATIC_PATH_PATTERNS = [
+    "assets/*.css",
 ]
 ```
+
 Adjust the paths as needed to include directories or specific files you want to copy.
 
 # Extending Functionality Using Plugins
@@ -196,29 +197,21 @@ To use the custom filter in your templates, follow this syntax:
 Define custom page rendering in the same file my_custom_plugin.py:
 
 ```python
+from pyjan26.registry import register_custom_pages
+from pyjan26.core import render_page
 
-from pyjan26.registry import register_custom_page
-from pyjan26.core import render_page, render_string
-
+### START Custom Page #########
 def repeat_page(*args, **kwargs):
-
     item, collection_name, collections, settings, permalink = args
-
     for data1 in collections.get(item.get('data')):
-        pl = None
-        if permalink:
-            pl =  render_string(permalink, { 'tag': data1 } )
-
         item['page_items'] = data1
-
         page_data = {
             'collection_name': collection_name, 
             'collections': collections,  
             'settings': settings, 
             'items': item,
-            'permalink': pl
+            'permalink2': f'{data1}/'
         }
-
         render_page(page_data)
 
     return { 'skip_next': True }
@@ -231,15 +224,17 @@ register_custom_pages([repeat_page])
 To apply custom page rendering to a content markdown file, add repeat_page: True to the YAML front matter:
 
 ```yaml
+---
+layout: base.html
 repeat_page: True #Apply custom page rendering
 data: all_tags
-layout: base.html
-permalink: '{{ tag }}'
+title: mytitle
+---
 ```
 
 This instructs PyJan26 to use the repeat_page function for rendering this specific content. Adjust metadata as needed.
 
-2. Include Templates and Static Files
+2. Include Templates and Static Files (if require)
 To package templates and static files within your plugin:
 * Ensure your plugin has the required files in appropriate directories(templates, static, etc.)
 * Update your setup.py to include these files
