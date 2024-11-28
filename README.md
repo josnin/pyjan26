@@ -165,7 +165,6 @@ def all_tags_collections(collections):
     #depdent on blog_collections
     return {'all_tags': list(tag for blog in collections.get('blogs') for tag in blog['tags'])}
 
-#register custom collections
 register_custom_collections([
     blog_collections,
     all_tags_collections
@@ -215,7 +214,6 @@ def repeat_page(*args, **kwargs):
 
     return { 'skip_next': True }
 
-#Register the custom page
 register_custom_pages([repeat_page])
 
 ```
