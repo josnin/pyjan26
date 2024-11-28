@@ -74,7 +74,7 @@ When pagination is enabled, PyJan26 provides built-in template variables that yo
 ```html
 {% if myblogs %}
   {% for post in myblogs %}
-    <span><a href="/posts/{{ post.name }}">{{ post.name }}</a></span>
+    <span><a href="/posts/{{ post.name }}/">{{ post.name }}</a></span>
   {% endfor %}
 {% endif %}
 
@@ -106,10 +106,9 @@ In this example:
 
 
 ## Copy Static Files
-To specify static files to be copied to the public directory, add them to the STATIC_PATHS variable in your configuration (settings.py):
+To specify static files to be copied to the public directory, add them to the STATIC_PATH_PATTERNS variable in your configuration (settings.py):
 
-# Copy Static files
-# can make use of Wildcards available in glob()
+can make use of Wildcards available in glob()
 ```python
 STATIC_PATH_PATTERNS = [
     "assets/*.css",
