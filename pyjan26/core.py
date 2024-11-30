@@ -352,14 +352,14 @@ class PyJan26:
             # if paginated, page size is 1 , and each url's has different naming then it wont make sense to have a pagination metadata
             # it will generate but will not make sense & be useful for diff naming
             permalink2 = f'{collection_name}/{permalink2}'
-            page_number_links = [{ 'page_number': page_number, 'url': f'/{permalink2}/{page_number}/' } for page_number in page_numbers]
+            page_number_links = [{ 'page_number': page_number, 'url': f'{settings.BASE_URL}/{permalink2}/{page_number}/' } for page_number in page_numbers]
         else:
-            page_number_links = [{ 'page_number': page_number, 'url': f'/{collection_name}/{page_number}/' } for page_number in page_numbers]
+            page_number_links = [{ 'page_number': page_number, 'url': f'{settings.BASE_URL}/{collection_name}/{page_number}/' } for page_number in page_numbers]
 
         prev_page_num = page_num - 1 if page_num > 1 else None
         next_page_num = page_num + 1 if page_num < total_pages else None
-        prev_page_url = f"/{permalink2}/{prev_page_num}/" if permalink2 and prev_page_num else f"/{collection_name}/{prev_page_num}/" if prev_page_num else None
-        next_page_url = f"/{permalink2}/{next_page_num}/" if permalink2 and next_page_num else f"/{collection_name}/{next_page_num}/" if next_page_num else None
+        prev_page_url = f"{settings.BASE_URL}/{permalink2}/{prev_page_num}/" if permalink2 and prev_page_num else f"{settings.BASE_URL}/{collection_name}/{prev_page_num}/" if prev_page_num else None
+        next_page_url = f"{settings.BASE_URL}/{permalink2}/{next_page_num}/" if permalink2 and next_page_num else f"{settings.BASE_URL}/{collection_name}/{next_page_num}/" if next_page_num else None
 
         pagination = {
             'page_number': page_num,
