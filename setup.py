@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pyjan26',
-    version='0.13',
+    version='0.14',
     python_requires='>=3.10',
     setup_requires=['setuptools>=38.6.0', 'wheel'],
     packages=find_packages(),

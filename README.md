@@ -1,6 +1,18 @@
 # PyJan26
 PyJan26 is a static site generator written in Python. It allows you to generate static websites from templates and content files, with support for pagination, and extend using plugins.
 
+## PyJan26 Plugins
+
+Checkout available plugins
+[Sitemap Plugin](https://github.com/josnin/pyjan26-plugins/)
+
+
+## Example Blog Site
+
+Check out the example blog site build with these plugins:
+[Sample Blog Site](https://josnin.github.io/pyjan26-blog/)
+
+
 ## Install PyJan26 using pip:
 
 ```bash
