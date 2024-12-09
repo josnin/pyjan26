@@ -3,8 +3,7 @@ PyJan26 is a static site generator written in Python. It allows you to generate 
 
 ## PyJan26 Plugins
 
-Checkout available plugins
-[Sitemap Plugin](https://github.com/josnin/pyjan26-plugins/)
+[Checkout available plugins](https://github.com/josnin/pyjan26-plugins/)
 
 
 ## Example Blog Site
