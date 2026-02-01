@@ -1,3 +1,5 @@
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/pyjan26?period=total&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/pyjan26)
+
 # PyJan26
 PyJan26 is a static site generator written in Python. It allows you to generate static websites from templates and content files, with support for pagination, and extend using plugins.
 
